@@ -95,7 +95,7 @@
           <ignoredUnusedDeclaredDependencies>
             <!-- Since this calls code generation during the build, but doesn't explicitly use the CodeGeneration
                  code, we have to add it as an unused dependency here to force the correct build order. -->
-            <ignoredUnusedDeclaredDependencies>com.hubspot:CodeGeneration</ignoredUnusedDeclaredDependencies>
+            <ignoredUnusedDeclaredDependencies>com.hubspot.chrome:CodeGeneration</ignoredUnusedDeclaredDependencies>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>
