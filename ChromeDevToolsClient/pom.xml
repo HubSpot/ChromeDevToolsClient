@@ -36,7 +36,7 @@
       <artifactId>ChromeDevToolsBase</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.hubspot</groupId>
+      <groupId>com.hubspot.chrome</groupId>
       <artifactId>CodeGeneration</artifactId>
     </dependency>
     <dependency>

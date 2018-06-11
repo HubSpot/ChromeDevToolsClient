@@ -40,7 +40,7 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.hubspot</groupId>
+      <groupId>com.hubspot.chrome</groupId>
       <artifactId>ChromeDevToolsBase</artifactId>
     </dependency>
     <dependency>
