@@ -21,6 +21,7 @@
 
   <properties>
     <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
+    <project.build.targetJdk>1.8</project.build.targetJdk>
   </properties>
 
   <dependencyManagement>
