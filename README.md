@@ -8,7 +8,7 @@ A java websocket client for the [Chrome DevTools Protocol](https://chromedevtool
 <dependency>
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevToolsClient</artifactId>
-  <version>0.1.0</version>
+  <version>1.0</version>
 </dependency>
 ```
 
@@ -19,7 +19,7 @@ Run Chrome with remote debugging enabled in headless mode
 google-chrome --headless --disable-gpu --remote-debugging-port=9292
 ```
 
-Connect to Chrome using the `ChromeDevToolsClient` class. The `ChromeDevToolsClient` can create multiple connections to separate instances of Chrome. Each connection is a separate `ChromeDevToolsSession`.
+Connect to Chrome using the `ChromeDevToolsClient` class. The `ChromeDevToolsClient` can create multiple connections to separate instances of Chrome. Each connection results in a separate `ChromeDevToolsSession`.
 
 ```java
 // Create a client
@@ -47,7 +47,7 @@ You can construct your dev tools client with the following options:
 ChromeDevToolsClient client = new ChromeDevToolsClient.Builder()
 
     /*
-     * An instance of com.hubspot.horizon.HttpClient. The HttpClient is used hit the devtools /json/list endpoint to grab the first available target id to control
+     * An instance of com.hubspot.horizon.HttpClient. The HttpClient is used to hit the devtools /json/list endpoint to grab the first available target id to control
      * Default: the default com.hubspot.horizon.ning.NingHttpClient
      */
     .setHttpClient()
