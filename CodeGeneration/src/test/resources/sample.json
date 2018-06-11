@@ -1,0 +1,101 @@
+{
+  "version": {
+    "major": "1",
+    "minor": "3"
+  },
+  "domains": [
+    {
+      "domain": "MyDomain",
+      "experimental": true,
+      "description": "A description.",
+      "deprecated": false,
+      "dependencies": [
+        "DomainX",
+        "DomainY"
+      ],
+      "types": [
+        {
+          "id": "MyType",
+          "description": "Description of type.",
+          "type": "object",
+          "properties": [
+            {
+              "name": "fullProp",
+              "description": "",
+              "type": "string",
+              "optional": false,
+              "enum": [
+                "A",
+                "B",
+                "C"
+              ]
+            },
+            {
+              "name": "minimalProp",
+              "description": "",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "id": "MyType2",
+          "description": "",
+          "type": "string",
+          "enum": [
+            "valA",
+            "valB"
+          ]
+        }
+      ],
+      "commands": [
+        {
+          "name": "commandA",
+          "description": "Run the command",
+          "parameters": [
+            {
+              "name": "paramA",
+              "description": "",
+              "$ref": "MyType"
+            }
+          ]
+        },
+        {
+          "name": "commandB",
+          "description": "",
+          "returns": [
+            {
+              "name": "returnValue",
+              "description": "",
+              "experimental": true,
+              "$ref": "MyType"
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "name": "eventCall",
+          "description": "",
+          "parameters": [
+            {
+              "name": "paramA",
+              "description": "",
+              "$ref": "MyType"
+            }
+          ]
+        },
+        {
+          "name": "eventCall2",
+          "description": "",
+          "parameters": [
+            {
+              "name": "paramA",
+              "description": "",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
