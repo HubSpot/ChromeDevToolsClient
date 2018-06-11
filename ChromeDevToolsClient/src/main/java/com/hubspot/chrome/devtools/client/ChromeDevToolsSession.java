@@ -198,10 +198,6 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return websocket.isOpen();
   }
 
-  public void wait() {
-
-  }
-
   public void waitDocumentReady() {
     waitDocumentReady(DEFAULT_TIMEOUT_MILLIS, DEFAULT_PERIOD_MILLIS);
   }
