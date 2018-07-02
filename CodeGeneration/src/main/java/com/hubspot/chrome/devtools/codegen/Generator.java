@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -173,6 +174,7 @@ public class Generator {
             .addModifiers(Modifier.PUBLIC)
             .addStatement("super($T.class)", abstractEvent)
             .addStatement("this.objectMapper = new ObjectMapper()")
+            .addStatement("this.objectMapper.configure($T.$N, false);", DeserializationFeature.class, "FAIL_ON_UNKNOWN_PROPERTIES")
             .build());
 
     MethodSpec.Builder deserializationBuilder = MethodSpec.methodBuilder("deserialize")
