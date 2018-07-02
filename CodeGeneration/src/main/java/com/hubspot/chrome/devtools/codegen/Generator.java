@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -28,6 +27,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -106,9 +106,6 @@ public class Generator {
 
   private void generateEventBase(Path packageRoot) {
     TypeSpec event = TypeSpec.classBuilder("Event")
-        .addAnnotation(AnnotationSpec.builder(JsonIgnoreProperties.class)
-            .addMember("ignoreUnknown", "true")
-            .build())
         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
         .build();
 
@@ -177,6 +174,7 @@ public class Generator {
             .addModifiers(Modifier.PUBLIC)
             .addStatement("super($T.class)", abstractEvent)
             .addStatement("this.objectMapper = new ObjectMapper()")
+            .addStatement("this.objectMapper.configure($T.$N, false);", DeserializationFeature.class, "FAIL_ON_UNKNOWN_PROPERTIES")
             .build());
 
     MethodSpec.Builder deserializationBuilder = MethodSpec.methodBuilder("deserialize")
@@ -256,9 +254,6 @@ public class Generator {
 
   private TypeSpec generateEventPOJO(Command event, String packageName) {
     TypeSpec.Builder builder = TypeSpec.classBuilder(getEventClassName(event))
-        .addAnnotation(AnnotationSpec.builder(JsonIgnoreProperties.class)
-            .addMember("ignoreUnknown", "true")
-            .build())
         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
         .superclass(getTypeName("Event", GENERATED_CODE_PACKAGE_NAME));
 

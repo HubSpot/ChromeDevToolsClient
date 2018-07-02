@@ -117,6 +117,12 @@ public class ChromeDevToolsClient implements Closeable {
       return this;
     }
 
+    /**
+     * @deprecated
+     * Contains implementation specific details regarding event deserialization.
+     * Never should have been exposed in the first place.
+     */
+    @Deprecated
     public ChromeDevToolsClient.Builder setObjectMapper(ObjectMapper objectMapper) {
       this.objectMapper = objectMapper;
       return this;
