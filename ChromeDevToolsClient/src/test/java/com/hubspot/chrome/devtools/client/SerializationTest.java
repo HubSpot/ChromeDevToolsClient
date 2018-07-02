@@ -69,7 +69,7 @@ public class SerializationTest {
   public void itIgnoresUnknownFields() throws Exception {
     ObjectMapper objectMapper = ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER;
 
-    String json = "{\"method\":\"CSS.fontsUpdated\",\"params\":{\"font\":\"myFont\"}}";
+    String json = "{\"method\":\"CSS.fontsUpdated\",\"params\":{\"dummy_field_that_definitely_should_not_exist\":\"value\"}}";
     assertThat(objectMapper.readValue(json, Event.class)).isInstanceOf(FontsUpdatedEvent.class);
   }
 
