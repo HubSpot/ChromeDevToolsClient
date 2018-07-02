@@ -14,6 +14,7 @@ import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.hubspot.chrome.devtools.client.core.Event;
 import com.hubspot.chrome.devtools.client.core.EventType;
+import com.hubspot.chrome.devtools.client.core.css.FontsUpdatedEvent;
 import com.hubspot.chrome.devtools.client.core.dom.ChildNodeRemovedEvent;
 import com.hubspot.chrome.devtools.client.core.dom.DocumentUpdatedEvent;
 import com.hubspot.chrome.devtools.client.core.page.DomContentEventFiredEvent;
@@ -62,6 +63,14 @@ public class SerializationTest {
     Pair<EventType, Event> args = retryer.call(listener::getLastOnEventCallArgs);
     EventType eventType = args.getKey();
     assertThat(eventType.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
+  }
+
+  @Test
+  public void itIgnoresUnknownFields() throws Exception {
+    ObjectMapper objectMapper = ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER;
+
+    String json = "{\"method\":\"CSS.fontsUpdated\",\"params\":{\"font\":\"myFont\"}}";
+    assertThat(objectMapper.readValue(json, Event.class)).isInstanceOf(FontsUpdatedEvent.class);
   }
 
   class SpyListener implements ChromeEventListener {
