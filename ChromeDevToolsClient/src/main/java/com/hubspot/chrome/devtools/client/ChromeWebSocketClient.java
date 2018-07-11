@@ -25,6 +25,7 @@ import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
 import com.hubspot.chrome.devtools.base.ChromeResponse;
+import com.hubspot.chrome.devtools.base.ChromeResponseErrorBody;
 import com.hubspot.chrome.devtools.client.core.Event;
 import com.hubspot.chrome.devtools.client.core.EventType;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
@@ -39,6 +40,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   private final Retryer<ChromeResponse> actionRetryer;
 
+  private final Map<Integer, ChromeResponseErrorBody> errorsReceived;
   private final Map<Integer, ChromeResponse> messagesReceived;
   private final ObjectMapper objectMapper;
   private final Map<String, ChromeEventListener> chromeEventListeners;
@@ -53,6 +55,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
     this.objectMapper = objectMapper;
     this.chromeEventListeners = chromeEventListeners;
     this.executorService = executorService;
+    this.errorsReceived = new HashMap<>();
     this.messagesReceived = new HashMap<>();
 
     // The timeout here is merely a safety net in case the user doesn't complete the futures
@@ -91,6 +94,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
         }
       } else if (response.isError()) {
         LOG.error(response.getError().toString());
+        errorsReceived.put(response.getId(), response.getError());
       }
     } catch (IOException ioe) {
       LOG.error("Could not parse response from chrome", ioe);
@@ -109,7 +113,13 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   public ChromeResponse getResponse(int id) {
     try {
-      ChromeResponse response = actionRetryer.call(() -> messagesReceived.get(id));
+      ChromeResponse response = actionRetryer.call(() -> {
+        if (errorsReceived.containsKey(id)) {
+          ChromeResponseErrorBody error = errorsReceived.get(id);
+          throw new ChromeDevToolsException(error.getMessage(), error.getCode());
+        }
+        return messagesReceived.get(id);
+      });
       messagesReceived.remove(id);
       return response;
     } catch (ExecutionException | RetryException e) {
