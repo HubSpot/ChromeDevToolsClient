@@ -90,7 +90,9 @@ public class ChromeWebSocketClient extends WebSocketClient {
           executorService.submit(() -> eventListener.onEvent(type, event));
         }
       } else if (response.isError()) {
-        LOG.error(response.getError().toString());
+        String errorMessage = response.getError().toString();
+        LOG.error(errorMessage);
+        throw new ChromeDevToolsException(errorMessage, response.getError().getCode());
       }
     } catch (IOException ioe) {
       LOG.error("Could not parse response from chrome", ioe);
