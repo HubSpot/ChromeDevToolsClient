@@ -251,7 +251,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public EvaluateResult evaluate(String javascript) {
-    return getRuntime().evaluate(javascript, null, null, null, null, null, null, null, null);
+    return getRuntime().evaluate(javascript, null, null, null, null, null, null, null, null, null, null);
   }
 
   public FrameId getFrameId() {
