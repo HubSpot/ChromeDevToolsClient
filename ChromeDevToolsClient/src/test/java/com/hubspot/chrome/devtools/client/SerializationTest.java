@@ -19,6 +19,7 @@ import com.hubspot.chrome.devtools.client.core.dom.ChildNodeRemovedEvent;
 import com.hubspot.chrome.devtools.client.core.dom.DocumentUpdatedEvent;
 import com.hubspot.chrome.devtools.client.core.page.DomContentEventFiredEvent;
 import com.hubspot.chrome.devtools.client.core.runtime.CallArgument;
+import com.hubspot.chrome.devtools.client.core.runtime.ExceptionRevokedEvent;
 
 import javafx.util.Pair;
 
@@ -43,7 +44,7 @@ public class SerializationTest {
   }
 
   @Test
-  public void itDeserializesEvents() throws Exception {
+  public void itDeserializesEventsFromBrowserProtocol() throws Exception {
     SpyListener listener = new SpyListener();
     ChromeWebSocketClient client = new ChromeWebSocketClient(
         URI.create(""),
@@ -63,6 +64,29 @@ public class SerializationTest {
     Pair<EventType, Event> args = retryer.call(listener::getLastOnEventCallArgs);
     EventType eventType = args.getKey();
     assertThat(eventType.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
+  }
+
+  @Test
+  public void itDeserializesEventsFromJsProtocol() throws Exception {
+    SpyListener listener = new SpyListener();
+    ChromeWebSocketClient client = new ChromeWebSocketClient(
+        URI.create(""),
+        ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER,
+        Collections.singletonMap("listenerId1", listener),
+        ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE,
+        1000L);
+
+    String json = "{\"method\":\"Runtime.exceptionRevoked\",\"params\":{\"reason\":\"my reason\",\"exceptionId\":1}}";
+    client.onMessage(json);
+
+    Retryer<Pair<EventType, Event>> retryer = RetryerBuilder.<Pair<EventType, Event>>newBuilder()
+        .retryIfResult(Objects::isNull)
+        .withStopStrategy(StopStrategies.stopAfterDelay(1000))
+        .build();
+
+    Pair<EventType, Event> args = retryer.call(listener::getLastOnEventCallArgs);
+    EventType eventType = args.getKey();
+    assertThat(eventType.getClazz()).isEqualTo(ExceptionRevokedEvent.class);
   }
 
   @Test
