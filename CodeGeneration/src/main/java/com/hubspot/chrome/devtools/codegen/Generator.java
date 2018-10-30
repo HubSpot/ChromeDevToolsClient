@@ -71,32 +71,39 @@ public class Generator {
 
   public static void main(String[] args) {
     Path path = Paths.get(args[0]);
-    generateProtocol(path, "/js_protocol.json");
-    generateProtocol(path, "/browser_protocol.json");
+
+    List<Domain> domains = new ArrayList<>();
+    domains.addAll(parseProtocol(path, "/browser_protocol.json"));
+    domains.addAll(parseProtocol(path, "/js_protocol.json"));
+
+    generateProtocol(path, domains);
   }
 
-  private static void generateProtocol(Path path, String protocolFileName) {
+  private static List<Domain> parseProtocol(Path path, String protocolFileName) {
     InputStream resourceStream = Generator.class.getResourceAsStream(protocolFileName);
-    generateProtocol(path, resourceStream);
+    return parseProtocol(path, resourceStream);
   }
 
-  private static void generateProtocol(Path path, InputStream resourceStream) {
+  private static List<Domain> parseProtocol(Path path, InputStream resourceStream) {
     Generator generator = new Generator();
-
-    List<Domain> domains;
 
     try {
       String json = new String(IOUtils.toByteArray(resourceStream), Charset.forName("UTF-8"));
-      domains = generator.parseProtocol(json);
+      return generator.parseProtocol(json);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static void generateProtocol(Path path, List<Domain> domains) {
+    Generator generator = new Generator();
 
     Map<Domain, List<TypeSpec>> pojos = new HashMap<>();
     for (Domain domain : domains) {
       generator.generateTypesForDomain(domain, path);
       generator.generateCommandsForDomain(domain, path);
-      pojos.put(domain, generator.generateEventsForDomain(domain, path));
+      List<TypeSpec> value = generator.generateEventsForDomain(domain, path);
+      pojos.put(domain, value);
     }
 
     generator.generateEventBase(path);
