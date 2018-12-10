@@ -38,6 +38,7 @@ import com.hubspot.chrome.devtools.client.core.applicationcache.ApplicationCache
 import com.hubspot.chrome.devtools.client.core.audits.Audits;
 import com.hubspot.chrome.devtools.client.core.browser.Browser;
 import com.hubspot.chrome.devtools.client.core.cachestorage.CacheStorage;
+import com.hubspot.chrome.devtools.client.core.console.Console;
 import com.hubspot.chrome.devtools.client.core.css.CSS;
 import com.hubspot.chrome.devtools.client.core.database.Database;
 import com.hubspot.chrome.devtools.client.core.debugger.Debugger;
@@ -397,6 +398,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   public ApplicationCache getApplicationCache() { return new ApplicationCache(this, objectMapper); }
   public Audits getAudits() { return new Audits(this, objectMapper); }
   public Browser getBrowser() { return new Browser(this, objectMapper); }
+  public Console getConsole() { return new Console(this, objectMapper); }
   public CacheStorage getCacheStorage() { return new CacheStorage(this, objectMapper); }
   public CSS getCSS() { return new CSS(this, objectMapper); }
   public Database getDatabase() { return new Database(this, objectMapper); }
