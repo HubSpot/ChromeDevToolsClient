@@ -21,8 +21,6 @@ import com.hubspot.chrome.devtools.client.core.page.DomContentEventFiredEvent;
 import com.hubspot.chrome.devtools.client.core.runtime.CallArgument;
 import com.hubspot.chrome.devtools.client.core.runtime.ExceptionRevokedEvent;
 
-import javafx.util.Pair;
-
 public class SerializationTest {
   @Test
   public void itIgnoresNullValues() throws Exception {
@@ -56,13 +54,13 @@ public class SerializationTest {
     String json = "{\"method\":\"Page.domContentEventFired\",\"params\":{\"timestamp\":904169.746022}}";
     client.onMessage(json);
 
-    Retryer<Pair<EventType, Event>> retryer = RetryerBuilder.<Pair<EventType, Event>>newBuilder()
+    Retryer<EventAndType> retryer = RetryerBuilder.<EventAndType>newBuilder()
         .retryIfResult(Objects::isNull)
         .withStopStrategy(StopStrategies.stopAfterDelay(1000))
         .build();
 
-    Pair<EventType, Event> args = retryer.call(listener::getLastOnEventCallArgs);
-    EventType eventType = args.getKey();
+    EventAndType args = retryer.call(listener::getLastOnEventCallArgs);
+    EventType eventType = args.getType();
     assertThat(eventType.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
   }
 
@@ -79,13 +77,13 @@ public class SerializationTest {
     String json = "{\"method\":\"Runtime.exceptionRevoked\",\"params\":{\"reason\":\"my reason\",\"exceptionId\":1}}";
     client.onMessage(json);
 
-    Retryer<Pair<EventType, Event>> retryer = RetryerBuilder.<Pair<EventType, Event>>newBuilder()
+    Retryer<EventAndType> retryer = RetryerBuilder.<EventAndType>newBuilder()
         .retryIfResult(Objects::isNull)
         .withStopStrategy(StopStrategies.stopAfterDelay(1000))
         .build();
 
-    Pair<EventType, Event> args = retryer.call(listener::getLastOnEventCallArgs);
-    EventType eventType = args.getKey();
+    EventAndType args = retryer.call(listener::getLastOnEventCallArgs);
+    EventType eventType = args.getType();
     assertThat(eventType.getClazz()).isEqualTo(ExceptionRevokedEvent.class);
   }
 
@@ -98,15 +96,33 @@ public class SerializationTest {
   }
 
   class SpyListener implements ChromeEventListener {
-    private Pair<EventType, Event> lastOnEventCallParams;
+    private EventAndType lastOnEventCallParams;
 
     @Override
     public void onEvent(EventType type, Event event) {
-      lastOnEventCallParams = new Pair<>(type, event);
+      lastOnEventCallParams = new EventAndType(event, type);
     }
 
-    public Pair<EventType, Event> getLastOnEventCallArgs() {
+    public EventAndType getLastOnEventCallArgs() {
       return lastOnEventCallParams;
+    }
+  }
+
+  private static class EventAndType {
+    private final Event event;
+    private final EventType type;
+
+    public EventAndType(Event event, EventType type) {
+      this.event = event;
+      this.type = type;
+    }
+
+    public Event getEvent() {
+      return event;
+    }
+
+    public EventType getType() {
+      return type;
     }
   }
 }
