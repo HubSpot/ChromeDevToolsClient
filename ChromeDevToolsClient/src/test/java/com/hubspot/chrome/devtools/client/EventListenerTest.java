@@ -18,6 +18,22 @@ import com.hubspot.chrome.devtools.client.core.runtime.ConsoleAPICalledEvent;
 
 public class EventListenerTest {
 
+  private class ChromeDevToolsTestSession extends ChromeDevToolsSession  {
+    public ChromeDevToolsTestSession(
+        Map<String, ChromeEventListener> chromeEventListeners,
+        ChromeWebSocketClient chromeWebSocketClient,
+        ObjectMapper objectMapper,
+        ExecutorService executorService) {
+      super(chromeEventListeners, chromeWebSocketClient, objectMapper, executorService);
+    }
+
+    @Override
+    protected void enableDomainForEventType(EventType eventType) {
+      // Do nothing. This attempts to make network calls that aren't relevant to testing.
+      // We don't want to expose this to the outside world and can't mock a private/protected method.
+    }
+  }
+
   @Test
   public void itCapturesEventsToCollections() throws Exception {
     ObjectMapper objectMapper = ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER;
@@ -31,7 +47,7 @@ public class EventListenerTest {
         executorService,
         1000L);
 
-    ChromeDevToolsSession chromeDevToolsSession = new ChromeDevToolsSession(
+    ChromeDevToolsTestSession chromeDevToolsSession = new ChromeDevToolsTestSession(
         listeners,
         client,
         objectMapper,
@@ -71,7 +87,7 @@ public class EventListenerTest {
         executorService,
         1000L);
 
-    ChromeDevToolsSession chromeDevToolsSession = new ChromeDevToolsSession(
+    ChromeDevToolsTestSession chromeDevToolsSession = new ChromeDevToolsTestSession(
         listeners,
         client,
         objectMapper,
