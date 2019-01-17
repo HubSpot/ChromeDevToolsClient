@@ -57,4 +57,44 @@ public class EventListenerTest {
     assertThat(consoleAPICalledEvent.getType()).isEqualTo("myType");
     assertThat(consoleAPICalledEvent.getContext()).isEqualTo("myContext");
   }
+
+  @Test
+  public void itAddsCustomConsumers() throws Exception {
+    ObjectMapper objectMapper = ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER;
+    ExecutorService executorService = ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE;
+    Map<String, ChromeEventListener> listeners = new ConcurrentHashMap<>();
+
+    ChromeWebSocketClient client = new ChromeWebSocketClient(
+        URI.create(""),
+        objectMapper,
+        listeners,
+        executorService,
+        1000L);
+
+    ChromeDevToolsSession chromeDevToolsSession = new ChromeDevToolsSession(
+        listeners,
+        client,
+        objectMapper,
+        executorService);
+
+    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
+    List<ConsoleAPICalledEvent> events = new ArrayList<>();
+    chromeDevToolsSession.addEventConsumer(eventType, e -> events.add((ConsoleAPICalledEvent) e));
+
+    String json = "{\"method\":\""
+        + eventType.getType()
+        + "\",\"params\":"
+        + objectMapper.writeValueAsString(
+            new ConsoleAPICalledEvent("myType", Collections.emptyList(), null, null, null, "myContext"))
+        + "}";
+
+    client.onMessage(json);
+
+    Thread.sleep(10); // debounce for the executor service handling messages
+
+    assertThat(events.size()).isEqualTo(1);
+    ConsoleAPICalledEvent consoleAPICalledEvent = events.get(0);
+    assertThat(consoleAPICalledEvent.getType()).isEqualTo("myType");
+    assertThat(consoleAPICalledEvent.getContext()).isEqualTo("myContext");
+  }
 }

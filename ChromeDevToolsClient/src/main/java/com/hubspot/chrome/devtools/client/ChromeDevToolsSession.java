@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
@@ -308,50 +309,58 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     }
   }
 
+  public <T> String addEventConsumer(EventType eventType, Consumer<T> eventConsumer) {
+    String listenerId = String.format("ChromeDevToolsSession-{}-{}Consumer-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    addEventListener(listenerId, createEventListener(eventType, eventConsumer));
+    return listenerId;
+  }
+
+  private <T> ChromeEventListener createEventListener(EventType eventType, Consumer<T> eventConsumer) {
+    return (type, event) -> {
+      try {
+        if (type == eventType) {
+          eventConsumer.accept((T) event);
+        }
+      } catch (Throwable t) {
+        LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
+      }
+    };
+  }
+
   public void removeEventListener(String listenerId) {
     if (listenerId != null) {
       chromeEventListeners.remove(listenerId);
     }
   }
 
+  /**
+   * Creates and registers a ChromeEventListener that adds all events of a given type to a
+   * collection as the events occur.
+   *
+   * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+   * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+   * (`session.getRuntime().enable()`).
+   *
+   * Example:
+   *
+   *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
+   *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
+   *    chromeDevToolsSession.captureEventsToCollection(eventType, events);
+   *
+   *    // Do things that trigger CONSOLE_MESSAGE_ADDED events
+   *    // All events will appear in
+   *
+   *    assertThat(events.getsize()).isGreaterThan(0);
+   *
+   * @param  eventType The type of event to listen for.
+   * @param  events The collection that event data will be added to whenever an event of `eventType` occurs.
+   *                Note that the data type of this collection must match that of `eventType.getClazz()` or else
+   *                a `ClassCastException` will be thrown.
+   * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
+   */
   public <T> String captureEventsToCollection(EventType eventType, Collection<T> events) {
-    /**
-     * Creates and registers a ChromeEventListener that adds all events of a given type to a
-     * collection as the events occur.
-     *
-     * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
-     * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
-     * (`session.getRuntime().enable()`).
-     *
-     * Example:
-     *
-     *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
-     *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
-     *    chromeDevToolsSession.captureEventsToCollection(eventType, events);
-     *
-     *    // Do things that trigger CONSOLE_MESSAGE_ADDED events
-     *    // All events will appear in
-     *
-     *    assertThat(events.getsize()).isGreaterThan(0);
-     *
-     * @param  eventType The type of event to listen for.
-     * @param  events The collection that event data will be added to whenever an event of `eventType` occurs.
-     *                Note that the data type of this collection must match that of `eventType.getClazz()` or else
-     *                a `ClassCastException` will be thrown.
-     * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
-     */
-    // Note - this will not enable the events to come through, just capture them if and when they do.
     String listenerId = String.format("ChromeDevToolsSession-{}-{}Listener-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
-
-    chromeEventListeners.put(listenerId, (type, event) -> {
-      try {
-        if (type == eventType) {
-          events.add((T) event);
-        }
-      } catch (Throwable t) {
-        LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
-      }
-    });
+    addEventListener(listenerId, createEventListener(eventType, events::add));
     return listenerId;
   }
 
