@@ -3,6 +3,7 @@ package com.hubspot.chrome.devtools.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +33,7 @@ import com.google.common.base.Predicates;
 import com.hubspot.chrome.devtools.base.ChromeRequest;
 import com.hubspot.chrome.devtools.base.ChromeResponse;
 import com.hubspot.chrome.devtools.base.ChromeSessionCore;
+import com.hubspot.chrome.devtools.client.core.EventType;
 import com.hubspot.chrome.devtools.client.core.accessibility.Accessibility;
 import com.hubspot.chrome.devtools.client.core.animation.Animation;
 import com.hubspot.chrome.devtools.client.core.applicationcache.ApplicationCache;
@@ -108,6 +110,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     } catch (Throwable t) {
       throw new ChromeDevToolsException(String.format("Could not connect to uri %s", uri), t);
     }
+  }
+
+  public ChromeDevToolsSession(Map<String, ChromeEventListener> chromeEventListeners,
+                               ChromeWebSocketClient chromeWebSocketClient,
+                               ObjectMapper objectMapper,
+                               ExecutorService executorService) {
+    this.chromeEventListeners = chromeEventListeners;
+    this.websocket = chromeWebSocketClient;
+    this.objectMapper = objectMapper;
+    this.executorService = executorService;
+    this.id = UUID.randomUUID();
   }
 
   @Override
@@ -299,6 +312,47 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     if (listenerId != null) {
       chromeEventListeners.remove(listenerId);
     }
+  }
+
+  public <T> String captureEventsToCollection(EventType eventType, Collection<T> events) {
+    /**
+     * Creates and registers a ChromeEventListener that adds all events of a given type to a
+     * collection as the events occur.
+     *
+     * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+     * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+     * (`session.getRuntime().enable()`).
+     *
+     * Example:
+     *
+     *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
+     *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
+     *    chromeDevToolsSession.captureEventsToCollection(eventType, events);
+     *
+     *    // Do things that trigger CONSOLE_MESSAGE_ADDED events
+     *    // All events will appear in
+     *
+     *    assertThat(events.getsize()).isGreaterThan(0);
+     *
+     * @param  eventType The type of event to listen for.
+     * @param  events The collection that event data will be added to whenever an event of `eventType` occurs.
+     *                Note that the data type of this collection must match that of `eventType.getClazz()` or else
+     *                a `ClassCastException` will be thrown.
+     * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
+     */
+    // Note - this will not enable the events to come through, just capture them if and when they do.
+    String listenerId = String.format("ChromeDevToolsSession-{}-{}Listener-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+
+    chromeEventListeners.put(listenerId, (type, event) -> {
+      try {
+        if (type == eventType) {
+          events.add((T) event);
+        }
+      } catch (Throwable t) {
+        LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
+      }
+    });
+    return listenerId;
   }
 
   public Object getProperty(String selector, String property) {
