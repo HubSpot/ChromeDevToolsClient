@@ -313,9 +313,9 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   /**
    * Registers a ChromeEventListener that consumes all events of a given type.
    *
-   * This will automatically enable the domain associated with the specified `EventType`
-   * (e.g. When `EventType.RUNTIME_CONSOLE_APICALLED` is passed the runtime domain
-   * will be enabled).
+   * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+   * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+   * (`session.getRuntime().enable()`).
    *
    * Example:
    *
@@ -329,7 +329,6 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    */
   public <T> String addEventConsumer(EventType eventType, Consumer<T> eventConsumer) {
     String listenerId = String.format("ChromeDevToolsSession-{}-{}Consumer-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
-    enableDomainForEventType(eventType);
     addEventListener(listenerId, createEventListener(eventType, eventConsumer));
     return listenerId;
   }
@@ -356,15 +355,15 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    * Creates and registers a ChromeEventListener that adds all events of a given type to a
    * collection as the events occur.
    *
-   * This will automatically enable the domain associated with the specified `EventType`
-   * (e.g. When `EventType.RUNTIME_CONSOLE_APICALLED` is passed the runtime domain
-   * will be enabled).
+   * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+   * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+   * (`session.getRuntime().enable()`).
    *
    * Example:
    *
    *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
    *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
-   *    chromeDevToolsSession.captureEventsToCollection(eventType, events);
+   *    chromeDevToolsSession.collectEvents(eventType, events);
    *
    *    // Do things that trigger CONSOLE_MESSAGE_ADDED events
    *    // All events will appear in
@@ -377,192 +376,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    *                a `ClassCastException` will be thrown.
    * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
    */
-  public <T> String captureEventsToCollection(EventType eventType, Collection<T> events) {
-    String listenerId = String.format("ChromeDevToolsSession-{}-{}Listener-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
-    enableDomainForEventType(eventType);
+  public <T> String collectEvents(EventType eventType, Collection<T> events) {
+    String listenerId = String.format("ChromeDevToolsSession-{}-{}Collector-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
     addEventListener(listenerId, createEventListener(eventType, events::add));
     return listenerId;
-  }
-
-  protected void enableDomainForEventType(EventType eventType) {
-    String type = eventType.getType();
-
-    switch (eventType) {
-      case ANIMATION_ANIMATION_CANCELED:
-      case ANIMATION_ANIMATION_CREATED:
-      case ANIMATION_ANIMATION_STARTED:
-        getAnimation().enable();
-        break;
-      case APPLICATION_CACHE_APPLICATION_CACHE_STATUS_UPDATED:
-      case APPLICATION_CACHE_NETWORK_STATE_UPDATED:
-        getApplicationCache().enable();
-        break;
-      case CONSOLE_MESSAGE_ADDED:
-        LOG.debug("Console is deprecated and unavailable in this API. It may not be enabled.");
-        break;
-      case CSS_FONTS_UPDATED:
-      case CSS_MEDIA_QUERY_RESULT_CHANGED:
-      case CSS_STYLE_SHEET_ADDED:
-      case CSS_STYLE_SHEET_CHANGED:
-      case CSS_STYLE_SHEET_REMOVED:
-        getCSS().enable();
-        break;
-      case DATABASE_ADD_DATABASE:
-        getDatabase().enable();
-        break;
-      case DEBUGGER_BREAKPOINT_RESOLVED:
-      case DEBUGGER_PAUSED:
-      case DEBUGGER_RESUMED:
-      case DEBUGGER_SCRIPT_FAILED_TO_PARSE:
-      case DEBUGGER_SCRIPT_PARSED:
-        getDebugger().enable();
-        break;
-      case DOMSTORAGE_DOM_STORAGE_ITEM_ADDED:
-      case DOMSTORAGE_DOM_STORAGE_ITEM_REMOVED:
-      case DOMSTORAGE_DOM_STORAGE_ITEM_UPDATED:
-      case DOMSTORAGE_DOM_STORAGE_ITEMS_CLEARED:
-        getDOMStorage().enable();
-        break;
-      case DOM_ATTRIBUTE_MODIFIED:
-      case DOM_ATTRIBUTE_REMOVED:
-      case DOM_CHARACTER_DATA_MODIFIED:
-      case DOM_CHILD_NODE_COUNT_UPDATED:
-      case DOM_CHILD_NODE_INSERTED:
-      case DOM_CHILD_NODE_REMOVED:
-      case DOM_DISTRIBUTED_NODES_UPDATED:
-      case DOM_DOCUMENT_UPDATED:
-      case DOM_INLINE_STYLE_INVALIDATED:
-      case DOM_PSEUDO_ELEMENT_ADDED:
-      case DOM_PSEUDO_ELEMENT_REMOVED:
-      case DOM_SET_CHILD_NODES:
-      case DOM_SHADOW_ROOT_POPPED:
-      case DOM_SHADOW_ROOT_PUSHED:
-        getDOM().enable();
-        break;
-      case EMULATION_VIRTUAL_TIME_ADVANCED:
-      case EMULATION_VIRTUAL_TIME_BUDGET_EXPIRED:
-      case EMULATION_VIRTUAL_TIME_PAUSED:
-        LOG.debug("Emulation events do not need enabling.");
-        break;
-      case HEADLESS_EXPERIMENTAL_NEEDS_BEGIN_FRAMES_CHANGED:
-        getHeadlessExperimental().enable();
-        break;
-      case HEAP_PROFILER_ADD_HEAP_SNAPSHOT_CHUNK:
-      case HEAP_PROFILER_HEAP_STATS_UPDATE:
-      case HEAP_PROFILER_LAST_SEEN_OBJECT_ID:
-      case HEAP_PROFILER_REPORT_HEAP_SNAPSHOT_PROGRESS:
-      case HEAP_PROFILER_RESET_PROFILES:
-        getHeapProfiler().enable();
-        break;
-      case INSPECTOR_DETACHED:
-      case INSPECTOR_TARGET_CRASHED:
-      case INSPECTOR_TARGET_RELOADED_AFTER_CRASH:
-        getInspector().enable();
-        break;
-      case LAYER_TREE_LAYER_PAINTED:
-      case LAYER_TREE_LAYER_TREE_DID_CHANGE:
-        getLayerTree().enable();
-        break;
-      case LOG_ENTRY_ADDED:
-        getLog().enable();
-        break;
-      case NETWORK_DATA_RECEIVED:
-      case NETWORK_EVENT_SOURCE_MESSAGE_RECEIVED:
-      case NETWORK_LOADING_FAILED:
-      case NETWORK_LOADING_FINISHED:
-      case NETWORK_REQUEST_INTERCEPTED:
-      case NETWORK_REQUEST_SERVED_FROM_CACHE:
-      case NETWORK_REQUEST_WILL_BE_SENT:
-      case NETWORK_RESOURCE_CHANGED_PRIORITY:
-      case NETWORK_RESPONSE_RECEIVED:
-      case NETWORK_WEB_SOCKET_CLOSED:
-      case NETWORK_WEB_SOCKET_CREATED:
-      case NETWORK_WEB_SOCKET_FRAME_ERROR:
-      case NETWORK_WEB_SOCKET_FRAME_RECEIVED:
-      case NETWORK_WEB_SOCKET_FRAME_SENT:
-      case NETWORK_WEB_SOCKET_HANDSHAKE_RESPONSE_RECEIVED:
-      case NETWORK_WEB_SOCKET_WILL_SEND_HANDSHAKE_REQUEST:
-        getNetwork().enable(null, null, null);
-        break;
-      case OVERLAY_INSPECT_NODE_REQUESTED:
-      case OVERLAY_NODE_HIGHLIGHT_REQUESTED:
-      case OVERLAY_SCREENSHOT_REQUESTED:
-        getOverlay().enable();
-        break;
-      case PAGE_DOM_CONTENT_EVENT_FIRED:
-      case PAGE_FRAME_ATTACHED:
-      case PAGE_FRAME_CLEARED_SCHEDULED_NAVIGATION:
-      case PAGE_FRAME_DETACHED:
-      case PAGE_FRAME_NAVIGATED:
-      case PAGE_FRAME_RESIZED:
-      case PAGE_FRAME_SCHEDULED_NAVIGATION:
-      case PAGE_FRAME_STARTED_LOADING:
-      case PAGE_FRAME_STOPPED_LOADING:
-      case PAGE_INTERSTITIAL_HIDDEN:
-      case PAGE_INTERSTITIAL_SHOWN:
-      case PAGE_JAVASCRIPT_DIALOG_CLOSED:
-      case PAGE_JAVASCRIPT_DIALOG_OPENING:
-      case PAGE_LIFECYCLE_EVENT:
-      case PAGE_LOAD_EVENT_FIRED:
-      case PAGE_NAVIGATED_WITHIN_DOCUMENT:
-      case PAGE_SCREENCAST_FRAME:
-      case PAGE_SCREENCAST_VISIBILITY_CHANGED:
-      case PAGE_WINDOW_OPEN:
-        getPage().enable();
-        break;
-      case PERFORMANCE_METRICS:
-        getPerformance().enable();
-        break;
-      case PROFILER_CONSOLE_PROFILE_FINISHED:
-      case PROFILER_CONSOLE_PROFILE_STARTED:
-        getProfiler().enable();
-        break;
-      case RUNTIME_BINDING_CALLED:
-      case RUNTIME_CONSOLE_APICALLED:
-      case RUNTIME_EXCEPTION_REVOKED:
-      case RUNTIME_EXCEPTION_THROWN:
-      case RUNTIME_EXECUTION_CONTEXT_CREATED:
-      case RUNTIME_EXECUTION_CONTEXT_DESTROYED:
-      case RUNTIME_EXECUTION_CONTEXTS_CLEARED:
-      case RUNTIME_INSPECT_REQUESTED:
-        getRuntime().enable();
-        break;
-      case SECURITY_CERTIFICATE_ERROR:
-      case SECURITY_SECURITY_STATE_CHANGED:
-        getSecurity().enable();
-        break;
-      case SERVICE_WORKER_WORKER_ERROR_REPORTED:
-      case SERVICE_WORKER_WORKER_REGISTRATION_UPDATED:
-      case SERVICE_WORKER_WORKER_VERSION_UPDATED:
-        getServiceWorker().enable();
-        break;
-      case STORAGE_CACHE_STORAGE_CONTENT_UPDATED:
-      case STORAGE_CACHE_STORAGE_LIST_UPDATED:
-      case STORAGE_INDEXED_DBCONTENT_UPDATED:
-      case STORAGE_INDEXED_DBLIST_UPDATED:
-        LOG.debug("Storage does not need enabling.");
-        break;
-      case TARGET_ATTACHED_TO_TARGET:
-      case TARGET_DETACHED_FROM_TARGET:
-      case TARGET_RECEIVED_MESSAGE_FROM_TARGET:
-      case TARGET_TARGET_CREATED:
-      case TARGET_TARGET_DESTROYED:
-      case TARGET_TARGET_INFO_CHANGED:
-        LOG.debug("Target does not need enabling");
-        break;
-      case TETHERING_ACCEPTED:
-        LOG.debug("Tethering does not need enabling");
-        break;
-      case TRACING_BUFFER_USAGE:
-      case TRACING_DATA_COLLECTED:
-      case TRACING_TRACING_COMPLETE:
-        LOG.debug("Tracing does not need enabling");
-        break;
-      default:
-        LOG.warn("Unhandled event type {}. The domain associated with this event "
-            + "type will need to be enabled manually.", eventType);
-        break;
-    }
   }
 
   public Object getProperty(String selector, String property) {
