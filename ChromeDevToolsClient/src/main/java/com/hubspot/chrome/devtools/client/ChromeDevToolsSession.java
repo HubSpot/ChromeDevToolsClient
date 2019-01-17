@@ -3,6 +3,7 @@ package com.hubspot.chrome.devtools.client;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ import com.google.common.base.Predicates;
 import com.hubspot.chrome.devtools.base.ChromeRequest;
 import com.hubspot.chrome.devtools.base.ChromeResponse;
 import com.hubspot.chrome.devtools.base.ChromeSessionCore;
+import com.hubspot.chrome.devtools.client.core.EventType;
 import com.hubspot.chrome.devtools.client.core.accessibility.Accessibility;
 import com.hubspot.chrome.devtools.client.core.animation.Animation;
 import com.hubspot.chrome.devtools.client.core.applicationcache.ApplicationCache;
@@ -48,6 +51,7 @@ import com.hubspot.chrome.devtools.client.core.dom.NodeId;
 import com.hubspot.chrome.devtools.client.core.dom.Quad;
 import com.hubspot.chrome.devtools.client.core.domdebugger.DOMDebugger;
 import com.hubspot.chrome.devtools.client.core.domsnapshot.DOMSnapshot;
+import com.hubspot.chrome.devtools.client.core.domstorage.DOMStorage;
 import com.hubspot.chrome.devtools.client.core.emulation.Emulation;
 import com.hubspot.chrome.devtools.client.core.headlessexperimental.HeadlessExperimental;
 import com.hubspot.chrome.devtools.client.core.heapprofiler.HeapProfiler;
@@ -108,6 +112,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     } catch (Throwable t) {
       throw new ChromeDevToolsException(String.format("Could not connect to uri %s", uri), t);
     }
+  }
+
+  public ChromeDevToolsSession(Map<String, ChromeEventListener> chromeEventListeners,
+                               ChromeWebSocketClient chromeWebSocketClient,
+                               ObjectMapper objectMapper,
+                               ExecutorService executorService) {
+    this.chromeEventListeners = chromeEventListeners;
+    this.websocket = chromeWebSocketClient;
+    this.objectMapper = objectMapper;
+    this.executorService = executorService;
+    this.id = UUID.randomUUID();
   }
 
   @Override
@@ -295,10 +310,76 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     }
   }
 
+  /**
+   * Registers a ChromeEventListener that consumes all events of a given type.
+   *
+   * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+   * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+   * (`session.getRuntime().enable()`).
+   *
+   * Example:
+   *
+   *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
+   *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
+   *    chromeDevToolsSession.addEventConsumer(eventType, e -> LOG.info("Event occurred: {}", (ConsoleAPICalledEvent) e));
+   *
+   * @param  eventType The type of event to listen for.
+   * @param  eventConsumer A `Consumer` that consumes events related to `eventType` (i.e. `eventType.getClazz()`).
+   * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
+   */
+  public <T> String addEventConsumer(EventType eventType, Consumer<T> eventConsumer) {
+    String listenerId = String.format("ChromeDevToolsSession-{}-{}Consumer-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    addEventListener(listenerId, createEventListener(eventType, eventConsumer));
+    return listenerId;
+  }
+
+  private <T> ChromeEventListener createEventListener(EventType eventType, Consumer<T> eventConsumer) {
+    return (type, event) -> {
+      try {
+        if (type == eventType) {
+          eventConsumer.accept((T) event);
+        }
+      } catch (Throwable t) {
+        LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
+      }
+    };
+  }
+
   public void removeEventListener(String listenerId) {
     if (listenerId != null) {
       chromeEventListeners.remove(listenerId);
     }
+  }
+
+  /**
+   * Creates and registers a ChromeEventListener that adds all events of a given type to a
+   * collection as the events occur.
+   *
+   * Some CDTP domains must be explicitly enabled for their events to be captured. For example,
+   * to receive RUNTIME_CONSOLE_APICALLED events, the client must first enable the runtime domain
+   * (`session.getRuntime().enable()`).
+   *
+   * Example:
+   *
+   *    EventType eventType = EventType.RUNTIME_CONSOLE_APICALLED;
+   *    List<ConsoleAPICalledEvent> events = new ArrayList<>();
+   *    chromeDevToolsSession.collectEvents(eventType, events);
+   *
+   *    // Do things that trigger CONSOLE_MESSAGE_ADDED events
+   *    // All events will appear in
+   *
+   *    assertThat(events.getsize()).isGreaterThan(0);
+   *
+   * @param  eventType The type of event to listen for.
+   * @param  events The collection that event data will be added to whenever an event of `eventType` occurs.
+   *                Note that the data type of this collection must match that of `eventType.getClazz()` or else
+   *                a `ClassCastException` will be thrown.
+   * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
+   */
+  public <T> String collectEvents(EventType eventType, Collection<T> events) {
+    String listenerId = String.format("ChromeDevToolsSession-{}-{}Collector-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    addEventListener(listenerId, createEventListener(eventType, events::add));
+    return listenerId;
   }
 
   public Object getProperty(String selector, String property) {
@@ -405,6 +486,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   public DOM getDOM() { return new DOM(this, objectMapper); }
   public DOMDebugger getDOMDebugger() { return new DOMDebugger(this, objectMapper); }
   public DOMSnapshot getDOMSnapshot() { return new DOMSnapshot(this, objectMapper); }
+  public DOMStorage getDOMStorage() { return new DOMStorage(this, objectMapper); }
   public Emulation getEmulation() { return new Emulation(this, objectMapper); }
   public HeadlessExperimental getHeadlessExperimental() { return new HeadlessExperimental(this, objectMapper); }
   public HeapProfiler getHeapProfiler() { return new HeapProfiler(this, objectMapper); }
