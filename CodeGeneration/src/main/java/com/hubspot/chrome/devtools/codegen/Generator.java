@@ -56,13 +56,6 @@ public class Generator {
   public Generator() {
     this.objectMapper = new ObjectMapper();
     configure(this.objectMapper);
-    setLoggingLevel(ch.qos.logback.classic.Level.DEBUG);
-  }
-
-
-  public static void setLoggingLevel(ch.qos.logback.classic.Level level) {
-    ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-    root.setLevel(level);
   }
 
   private ObjectMapper configure(ObjectMapper mapper) {
@@ -107,7 +100,6 @@ public class Generator {
 
     Map<Domain, List<TypeSpec>> pojos = new HashMap<>();
     for (Domain domain : domains) {
-      LOG.info("Generating domain: {}", domain.getName());
       generator.generateTypesForDomain(domain, path);
       generator.generateCommandsForDomain(domain, path);
       List<TypeSpec> value = generator.generateEventsForDomain(domain, path);
@@ -252,7 +244,6 @@ public class Generator {
   }
 
   private TypeSpec generateTypeSpec(Type type, String packageName) {
-    LOG.debug("Generating type spec: {}::{}", packageName, type.getName());
     TypeSpec.Builder builder;
     if (type.getEnum().isPresent()) {
       builder = generateEnumType(type);
@@ -415,8 +406,6 @@ public class Generator {
   }
 
   private TypeSpec.Builder generatePODType(Type type, String packageName) {
-    LOG.debug("Generating POD type: {}", type.getName());
-
     TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), packageName);
     String valueName = "value";
     String toStringStatement =
