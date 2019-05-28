@@ -416,7 +416,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     if (selectedNodeId == null) {
       return null;
     }
-    RemoteObject remoteObject = dom.resolveNode(selectedNodeId, null, null);
+    RemoteObject remoteObject = dom.resolveNode(selectedNodeId, null, null, null);
     if (remoteObject == null) {
       return null;
     }
@@ -444,8 +444,8 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     double top  = Math.floor(content.getValue().get(1).doubleValue());
     int clickCount = 1;
     Input input = getInput();
-    input.dispatchMouseEvent("mousePressed", left, top, null, null, "left", clickCount, null, null);
-    input.dispatchMouseEvent("mouseReleased", left, top, null, null, "left", clickCount, null, null);
+    input.dispatchMouseEvent("mousePressed", left, top, null, null,"left", null, clickCount, null, null, null);
+    input.dispatchMouseEvent("mouseReleased", left, top, null, null, "left", null, clickCount, null, null, null);
     return true;
   }
 

@@ -49,13 +49,20 @@ import com.squareup.javapoet.TypeSpec;
 
 public class Generator {
   private static final String GENERATED_CODE_PACKAGE_NAME = "com.hubspot.chrome.devtools.client.core";
-  private final Logger LOG = LoggerFactory.getLogger(Generator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Generator.class);
 
   ObjectMapper objectMapper;
 
   public Generator() {
     this.objectMapper = new ObjectMapper();
     configure(this.objectMapper);
+    setLoggingLevel(ch.qos.logback.classic.Level.DEBUG);
+  }
+
+
+  public static void setLoggingLevel(ch.qos.logback.classic.Level level) {
+    ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+    root.setLevel(level);
   }
 
   private ObjectMapper configure(ObjectMapper mapper) {
@@ -100,6 +107,7 @@ public class Generator {
 
     Map<Domain, List<TypeSpec>> pojos = new HashMap<>();
     for (Domain domain : domains) {
+      LOG.info("Generating domain: {}", domain.getName());
       generator.generateTypesForDomain(domain, path);
       generator.generateCommandsForDomain(domain, path);
       List<TypeSpec> value = generator.generateEventsForDomain(domain, path);
@@ -244,13 +252,14 @@ public class Generator {
   }
 
   private TypeSpec generateTypeSpec(Type type, String packageName) {
+    LOG.debug("Generating type spec: {}::{}", packageName, type.getName());
     TypeSpec.Builder builder;
     if (type.getEnum().isPresent()) {
       builder = generateEnumType(type);
     } else if (type.getProperties().isPresent()) {
       builder = generateObjectType(type, packageName);
     } else {
-      builder = generatePODType(type);
+      builder = generatePODType(type, packageName);
     }
 
     if (type.getDescription().isPresent()) {
@@ -405,8 +414,10 @@ public class Generator {
     return outerBuilder;
   }
 
-  private TypeSpec.Builder generatePODType(Type type) {
-    TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), null);
+  private TypeSpec.Builder generatePODType(Type type, String packageName) {
+    LOG.debug("Generating POD type: {}", type.getName());
+
+    TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), packageName);
     String valueName = "value";
     String toStringStatement =
         type.getType().equals("string")
