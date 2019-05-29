@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.hubspot</groupId>
     <artifactId>basepom</artifactId>
-    <version>15.11</version>
+    <version>25.3</version>
   </parent>
 
   <groupId>com.hubspot.chrome</groupId>
@@ -18,11 +18,6 @@
     <module>CodeGeneration</module>
     <module>ChromeDevToolsBase</module>
   </modules>
-
-  <properties>
-    <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
-    <project.build.targetJdk>1.8</project.build.targetJdk>
-  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -50,12 +45,6 @@
         <groupId>com.hubspot</groupId>
         <artifactId>HorizonNing</artifactId>
         <version>0.1.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.hubspot</groupId>
-            <artifactId>HorizonCore</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.squareup</groupId>

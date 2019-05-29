@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -100,6 +101,7 @@ public class GeneratorTest {
         ))
         .build();
 
-    assertThat(generator.parseProtocol(json)).isEqualTo(Collections.singletonList(domain));
+    List<Domain> domains = generator.objectMapper.readValue(json, Protocol.class).getDomains();
+    assertThat(domains).isEqualTo(Collections.singletonList(domain));
   }
 }

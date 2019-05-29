@@ -1,9 +1,10 @@
 package com.hubspot.chrome.devtools.base;
 
+import javax.annotation.Nullable;
+
 import org.immutables.value.Value.Immutable;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.sun.istack.internal.Nullable;
 
 @Immutable
 @ChromeStyle
