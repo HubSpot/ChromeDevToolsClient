@@ -49,7 +49,7 @@ import com.squareup.javapoet.TypeSpec;
 
 public class Generator {
   private static final String GENERATED_CODE_PACKAGE_NAME = "com.hubspot.chrome.devtools.client.core";
-  private final Logger LOG = LoggerFactory.getLogger(Generator.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Generator.class);
 
   ObjectMapper objectMapper;
 
@@ -250,7 +250,7 @@ public class Generator {
     } else if (type.getProperties().isPresent()) {
       builder = generateObjectType(type, packageName);
     } else {
-      builder = generatePODType(type);
+      builder = generatePODType(type, packageName);
     }
 
     if (type.getDescription().isPresent()) {
@@ -405,8 +405,8 @@ public class Generator {
     return outerBuilder;
   }
 
-  private TypeSpec.Builder generatePODType(Type type) {
-    TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), null);
+  private TypeSpec.Builder generatePODType(Type type, String packageName) {
+    TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), packageName);
     String valueName = "value";
     String toStringStatement =
         type.getType().equals("string")

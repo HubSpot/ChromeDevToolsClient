@@ -21,4 +21,5 @@ public interface TypeIF {
   Optional<List<String>> getEnum();
 
   Optional<Boolean> getExperimental();
+  Optional<Boolean> getDeprecated();
 }
