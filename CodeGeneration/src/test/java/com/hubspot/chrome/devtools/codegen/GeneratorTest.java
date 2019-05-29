@@ -5,16 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 public class GeneratorTest {
   @Test
   public void itReadsJson() throws Exception {
     InputStream resourceStream = getClass().getResourceAsStream("/sample.json");
-    String json = new String(IOUtils.toByteArray(resourceStream));
 
     Generator generator = new Generator();
 
@@ -101,7 +98,6 @@ public class GeneratorTest {
         ))
         .build();
 
-    List<Domain> domains = generator.objectMapper.readValue(json, Protocol.class).getDomains();
-    assertThat(domains).isEqualTo(Collections.singletonList(domain));
+    assertThat(Generator.parseProtocol(resourceStream)).isEqualTo(Collections.singletonList(domain));
   }
 }

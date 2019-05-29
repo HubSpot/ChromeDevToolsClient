@@ -14,9 +14,9 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>ChromeDevToolsClient</module>
-    <module>CodeGeneration</module>
     <module>ChromeDevToolsBase</module>
+    <module>CodeGeneration</module>
+    <module>ChromeDevToolsClient</module>
   </modules>
 
   <dependencyManagement>

@@ -2,7 +2,6 @@ package com.hubspot.chrome.devtools.codegen;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,10 +14,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import javax.lang.model.element.Modifier;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,16 +44,12 @@ import com.squareup.javapoet.TypeSpec;
 
 public class Generator {
   private static final String GENERATED_CODE_PACKAGE_NAME = "com.hubspot.chrome.devtools.client.core";
-  private static final Logger LOG = LoggerFactory.getLogger(Generator.class);
 
-  ObjectMapper objectMapper;
+  private static final ObjectMapper OBJECT_MAPPER = newObjectMapper();
 
-  public Generator() {
-    this.objectMapper = new ObjectMapper();
-    configure(this.objectMapper);
-  }
+  private static ObjectMapper newObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
 
-  private ObjectMapper configure(ObjectMapper mapper) {
     mapper.registerModule(new GuavaModule());
     mapper.registerModule(new Jdk8Module());
 
@@ -84,10 +75,9 @@ public class Generator {
     return parseProtocol(resourceStream);
   }
 
-  private static List<Domain> parseProtocol(InputStream resourceStream) {
+  static List<Domain> parseProtocol(InputStream resourceStream) {
     try {
-      String json = new String(IOUtils.toByteArray(resourceStream), Charset.forName("UTF-8"));
-      return parseProtocol(json);
+      return OBJECT_MAPPER.readValue(resourceStream, Protocol.class).getDomains();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
