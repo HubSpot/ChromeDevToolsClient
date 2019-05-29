@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -33,7 +34,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.google.common.annotations.VisibleForTesting;
 import com.hubspot.chrome.devtools.base.ChromeRequest;
 import com.hubspot.chrome.devtools.base.ChromeSessionCore;
 import com.squareup.javapoet.AnnotationSpec;
@@ -73,23 +73,21 @@ public class Generator {
     Path path = Paths.get(args[0]);
 
     List<Domain> domains = new ArrayList<>();
-    domains.addAll(parseProtocol(path, "/browser_protocol.json"));
-    domains.addAll(parseProtocol(path, "/js_protocol.json"));
+    domains.addAll(parseProtocol("/browser_protocol.json"));
+    domains.addAll(parseProtocol("/js_protocol.json"));
 
     generateProtocol(path, domains);
   }
 
-  private static List<Domain> parseProtocol(Path path, String protocolFileName) {
+  private static List<Domain> parseProtocol(String protocolFileName) {
     InputStream resourceStream = Generator.class.getResourceAsStream(protocolFileName);
-    return parseProtocol(path, resourceStream);
+    return parseProtocol(resourceStream);
   }
 
-  private static List<Domain> parseProtocol(Path path, InputStream resourceStream) {
-    Generator generator = new Generator();
-
+  private static List<Domain> parseProtocol(InputStream resourceStream) {
     try {
       String json = new String(IOUtils.toByteArray(resourceStream), Charset.forName("UTF-8"));
-      return generator.parseProtocol(json);
+      return parseProtocol(json);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -148,10 +146,10 @@ public class Generator {
             .addStatement("return $N", "type")
             .returns(String.class)
             .build());
-    for (Domain domain : pojos.keySet()) {
-      for (TypeSpec typeSpec : pojos.get(domain)) {
+    for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
+      Domain domain = entry.getKey();
+      for (TypeSpec typeSpec : entry.getValue()) {
         String eventName = replaceAtEnd(typeSpec.name, "Event", "");
-        String enumName = String.format("%s_%s", domain.getName(), eventName);
         builder.addEnumConstant(
             formatEnumName(String.format("%s_%s", domain.getName(), eventName)),
             TypeSpec.anonymousClassBuilder("$S, $T.class",
@@ -197,8 +195,9 @@ public class Generator {
         .addStatement("String method = field.asText()")
         .beginControlFlow("switch (method)");
 
-    for (Domain domain : pojos.keySet()) {
-      for (TypeSpec typeSpec : pojos.get(domain)) {
+    for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
+      Domain domain = entry.getKey();
+      for (TypeSpec typeSpec : entry.getValue()) {
         deserializationBuilder
             .addCode("case $S: ", domain.getName() + "." + uncapitalize(replaceAtEnd(typeSpec.name, "Event", "")))
             .addCode("{\n$>")
@@ -225,11 +224,6 @@ public class Generator {
       writeJavaFile(packageRoot, packageName, pojoTypeSpec);
     }
     return pojos;
-  }
-
-  @VisibleForTesting
-  List<Domain> parseProtocol(String json) throws IOException {
-    return objectMapper.readValue(json, Protocol.class).getDomains();
   }
 
   private void generateTypesForDomain(Domain domain, Path packageRoot) {
