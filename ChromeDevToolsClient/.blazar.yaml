@@ -1,2 +1,2 @@
 depends:
-  - kubernetes-metrics-rpm
+  - com.hubspot.chrome:CodeGeneration
