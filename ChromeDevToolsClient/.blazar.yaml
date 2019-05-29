@@ -1,2 +1,2 @@
 depends:
-  - - kubernetes-metrics-rpm
+  - kubernetes-metrics-rpm
