@@ -1,0 +1,2 @@
+depends:
+  - - kubernetes-metrics-rpm
