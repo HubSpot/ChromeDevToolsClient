@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,10 @@ import com.hubspot.chrome.devtools.client.core.io.IO;
 import com.hubspot.chrome.devtools.client.core.layertree.LayerTree;
 import com.hubspot.chrome.devtools.client.core.log.Log;
 import com.hubspot.chrome.devtools.client.core.memory.Memory;
+import com.hubspot.chrome.devtools.client.core.network.LoadingFailedEvent;
+import com.hubspot.chrome.devtools.client.core.network.LoadingFinishedEvent;
 import com.hubspot.chrome.devtools.client.core.network.Network;
+import com.hubspot.chrome.devtools.client.core.network.RequestWillBeSentEvent;
 import com.hubspot.chrome.devtools.client.core.overlay.Overlay;
 import com.hubspot.chrome.devtools.client.core.page.FrameId;
 import com.hubspot.chrome.devtools.client.core.page.NavigateResult;
@@ -86,6 +90,9 @@ import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 
 public class ChromeDevToolsSession implements ChromeSessionCore {
   private final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsSession.class);
+
+  private static final int REQUEST_TRACKING_MAX_TOTAL_BUFFER_SIZE = 128 * 1024 * 1024; // 128MiB
+  private static final int REQUEST_TRACKING_MAX_RESOURCE_BUFFER_SIZE = 32 * 1024 * 1024; // 32MiB
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 10000L;
   public static final long DEFAULT_PERIOD_MILLIS = 10L;
@@ -214,14 +221,33 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public void waitDocumentReady() {
-    waitDocumentReady(DEFAULT_TIMEOUT_MILLIS, DEFAULT_PERIOD_MILLIS);
+    waitDocumentReady(DEFAULT_TIMEOUT_MILLIS, DEFAULT_PERIOD_MILLIS, false);
   }
 
   public void waitDocumentReady(long timeoutMillis) {
-    waitDocumentReady(timeoutMillis, DEFAULT_PERIOD_MILLIS);
+    waitDocumentReady(timeoutMillis, DEFAULT_PERIOD_MILLIS, false);
   }
 
-  public void waitDocumentReady(long timeoutMillis, long periodMillis) {
+  public void waitDocumentReady(long timeoutMillis, long periodMillis, boolean trackRequests) {
+    ConcurrentMap<String, String> unfinishedRequests = new ConcurrentHashMap<>();
+    if (trackRequests) {
+      getNetwork().enable(REQUEST_TRACKING_MAX_TOTAL_BUFFER_SIZE, REQUEST_TRACKING_MAX_RESOURCE_BUFFER_SIZE, 0);
+      addEventListener("requestsTracker", (type, event) -> {
+        if (type == EventType.NETWORK_REQUEST_WILL_BE_SENT) {
+          RequestWillBeSentEvent requestWillBeSentEvent = ((RequestWillBeSentEvent) event);
+          unfinishedRequests.put(
+              requestWillBeSentEvent.getRequestId().getValue(), requestWillBeSentEvent.getDocumentURL()
+          );
+        } else {
+          if (type == EventType.NETWORK_LOADING_FINISHED) {
+            unfinishedRequests.remove(((LoadingFinishedEvent) event).getRequestId().getValue());
+          } else if (type == EventType.NETWORK_LOADING_FAILED) {
+            unfinishedRequests.remove(((LoadingFailedEvent) event).getRequestId().getValue());
+          }
+        }
+      });
+    }
+
     Retryer<Boolean> retryer = RetryerBuilder.<Boolean>newBuilder()
         .retryIfResult(Predicates.equalTo(false))
         .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
@@ -230,7 +256,16 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     try {
       retryer.call(() -> (Boolean) evaluate("document.readyState === \"complete\"").result.getValue());
     } catch (ExecutionException| RetryException e) {
+      if (!unfinishedRequests.isEmpty()) {
+        String message = String.format("Unfinished request(s): %s", String.join(", ", unfinishedRequests.values()));
+        throw new ChromeDevToolsException(message, e);
+      }
+
       throw new ChromeDevToolsException(e);
+    } finally {
+      if (trackRequests) {
+        getNetwork().disable(); // todo what if network tracking was enabled before we got to waitDocumentReady()?
+      }
     }
   }
 
