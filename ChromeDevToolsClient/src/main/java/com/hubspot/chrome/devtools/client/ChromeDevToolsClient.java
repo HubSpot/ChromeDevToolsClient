@@ -38,12 +38,14 @@ public class ChromeDevToolsClient implements Closeable {
   private final ObjectMapper objectMapper;
   private final HttpClient httpClient;
   private final long actionTimeoutMillis;
+  private final boolean trackRequests;
 
-  private ChromeDevToolsClient(ObjectMapper objectMapper, ExecutorService executorService, HttpClient httpClient, long actionTimeoutMillis, long sessionConnectTimeoutMillis) {
+  private ChromeDevToolsClient(ObjectMapper objectMapper, ExecutorService executorService, HttpClient httpClient, long actionTimeoutMillis, long sessionConnectTimeoutMillis, boolean trackRequests) {
     this.executorService = executorService;
     this.objectMapper = objectMapper;
     this.httpClient = httpClient;
     this.actionTimeoutMillis = actionTimeoutMillis;
+    this.trackRequests = trackRequests;
     this.httpRetryer = RetryerBuilder.<TargetID>newBuilder()
         .retryIfExceptionOfType(ChromeDevToolsException.class)
         .retryIfExceptionOfType(HttpRuntimeException.class)
@@ -64,7 +66,7 @@ public class ChromeDevToolsClient implements Closeable {
       throw new ChromeDevToolsException(e);
     }
     String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
-    return new ChromeDevToolsSession(new URI(uri), objectMapper, executorService, actionTimeoutMillis);
+    return new ChromeDevToolsSession(new URI(uri), objectMapper, executorService, actionTimeoutMillis, trackRequests);
   }
 
   @Override
@@ -103,6 +105,7 @@ public class ChromeDevToolsClient implements Closeable {
     private HttpClient httpClient;
     private long actionTimeoutMillis;
     private long sessionConnectTimeoutMillis;
+    private boolean trackRequests;
 
     public Builder() {
       this.executorService = ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE;
@@ -110,6 +113,7 @@ public class ChromeDevToolsClient implements Closeable {
       this.httpClient = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CLIENT;
       this.actionTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS;
       this.sessionConnectTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS;
+      this.trackRequests = false;
     }
 
     public ChromeDevToolsClient.Builder setExecutorService(ExecutorService executorService) {
@@ -138,13 +142,18 @@ public class ChromeDevToolsClient implements Closeable {
       return this;
     }
 
-    public Builder setSessionConnectTimeoutMillis(long sessionConnectTimeoutMillis) {
+    public ChromeDevToolsClient.Builder setSessionConnectTimeoutMillis(long sessionConnectTimeoutMillis) {
       this.sessionConnectTimeoutMillis = sessionConnectTimeoutMillis;
       return this;
     }
 
+    public ChromeDevToolsClient.Builder setTrackRequests(boolean trackRequests) {
+      this.trackRequests = trackRequests;
+      return this;
+    }
+
     public ChromeDevToolsClient build() {
-      return new ChromeDevToolsClient(objectMapper, executorService, httpClient, actionTimeoutMillis, sessionConnectTimeoutMillis);
+      return new ChromeDevToolsClient(objectMapper, executorService, httpClient, actionTimeoutMillis, sessionConnectTimeoutMillis, trackRequests);
     }
   }
 }

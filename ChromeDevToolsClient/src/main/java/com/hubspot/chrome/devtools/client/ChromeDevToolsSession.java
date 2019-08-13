@@ -103,12 +103,15 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   private final UUID id;
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
+  private final ConcurrentMap<String, String> unfinishedRequests;
 
   public ChromeDevToolsSession(URI uri,
                                ObjectMapper objectMapper,
                                ExecutorService executorService,
-                               long actionTimeoutMillis) {
+                               long actionTimeoutMillis,
+                               boolean trackUnfinishedRequests) {
     this.chromeEventListeners = new ConcurrentHashMap<>();
+    this.unfinishedRequests = new ConcurrentHashMap<>();
     this.websocket = new ChromeWebSocketClient(uri, objectMapper, chromeEventListeners, executorService, actionTimeoutMillis);
     this.objectMapper = objectMapper;
     this.executorService = executorService;
@@ -116,6 +119,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
     try {
       this.websocket.connectBlocking();
+
+      if (trackUnfinishedRequests) {
+        trackUnfinishedRequests();
+      }
     } catch (Throwable t) {
       throw new ChromeDevToolsException(String.format("Could not connect to uri %s", uri), t);
     }
@@ -126,6 +133,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
                                ObjectMapper objectMapper,
                                ExecutorService executorService) {
     this.chromeEventListeners = chromeEventListeners;
+    this.unfinishedRequests = new ConcurrentHashMap<>();
     this.websocket = chromeWebSocketClient;
     this.objectMapper = objectMapper;
     this.executorService = executorService;
@@ -216,38 +224,37 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     websocket.closeBlocking();
   }
 
+  private void trackUnfinishedRequests() {
+    getNetwork().enable(REQUEST_TRACKING_MAX_TOTAL_BUFFER_SIZE, REQUEST_TRACKING_MAX_RESOURCE_BUFFER_SIZE, 0);
+    addEventListener("requestsTracker", (type, event) -> {
+      if (type == EventType.NETWORK_REQUEST_WILL_BE_SENT) {
+        RequestWillBeSentEvent requestWillBeSentEvent = ((RequestWillBeSentEvent) event);
+        unfinishedRequests.put(
+            requestWillBeSentEvent.getRequestId().getValue(), requestWillBeSentEvent.getDocumentURL()
+        );
+      } else {
+        if (type == EventType.NETWORK_LOADING_FINISHED) {
+          unfinishedRequests.remove(((LoadingFinishedEvent) event).getRequestId().getValue());
+        } else if (type == EventType.NETWORK_LOADING_FAILED) {
+          unfinishedRequests.remove(((LoadingFailedEvent) event).getRequestId().getValue());
+        }
+      }
+    });
+  }
+
   public boolean isConnected() {
     return websocket.isOpen();
   }
 
   public void waitDocumentReady() {
-    waitDocumentReady(DEFAULT_TIMEOUT_MILLIS, DEFAULT_PERIOD_MILLIS, false);
+    waitDocumentReady(DEFAULT_TIMEOUT_MILLIS, DEFAULT_PERIOD_MILLIS);
   }
 
   public void waitDocumentReady(long timeoutMillis) {
-    waitDocumentReady(timeoutMillis, DEFAULT_PERIOD_MILLIS, false);
+    waitDocumentReady(timeoutMillis, DEFAULT_PERIOD_MILLIS);
   }
 
-  public void waitDocumentReady(long timeoutMillis, long periodMillis, boolean trackRequests) {
-    ConcurrentMap<String, String> unfinishedRequests = new ConcurrentHashMap<>();
-    if (trackRequests) {
-      getNetwork().enable(REQUEST_TRACKING_MAX_TOTAL_BUFFER_SIZE, REQUEST_TRACKING_MAX_RESOURCE_BUFFER_SIZE, 0);
-      addEventListener("requestsTracker", (type, event) -> {
-        if (type == EventType.NETWORK_REQUEST_WILL_BE_SENT) {
-          RequestWillBeSentEvent requestWillBeSentEvent = ((RequestWillBeSentEvent) event);
-          unfinishedRequests.put(
-              requestWillBeSentEvent.getRequestId().getValue(), requestWillBeSentEvent.getDocumentURL()
-          );
-        } else {
-          if (type == EventType.NETWORK_LOADING_FINISHED) {
-            unfinishedRequests.remove(((LoadingFinishedEvent) event).getRequestId().getValue());
-          } else if (type == EventType.NETWORK_LOADING_FAILED) {
-            unfinishedRequests.remove(((LoadingFailedEvent) event).getRequestId().getValue());
-          }
-        }
-      });
-    }
-
+  public void waitDocumentReady(long timeoutMillis, long periodMillis) {
     Retryer<Boolean> retryer = RetryerBuilder.<Boolean>newBuilder()
         .retryIfResult(Predicates.equalTo(false))
         .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
@@ -263,9 +270,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
       throw new ChromeDevToolsException(e);
     } finally {
-      if (trackRequests) {
-        getNetwork().disable(); // todo what if network tracking was enabled before we got to waitDocumentReady()?
-      }
+      unfinishedRequests.clear();
     }
   }
 
