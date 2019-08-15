@@ -328,7 +328,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
    */
   public <T> String addEventConsumer(EventType eventType, Consumer<T> eventConsumer) {
-    String listenerId = String.format("ChromeDevToolsSession-{}-{}Consumer-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    String listenerId = String.format("ChromeDevToolsSession-%s-%sConsumer-%s", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
     addEventListener(listenerId, createEventListener(eventType, eventConsumer));
     return listenerId;
   }
@@ -377,7 +377,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
    */
   public <T> String collectEvents(EventType eventType, Collection<T> events) {
-    String listenerId = String.format("ChromeDevToolsSession-{}-{}Collector-{}", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    String listenerId = String.format("ChromeDevToolsSession-%s-%sCollector-%s", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
     addEventListener(listenerId, createEventListener(eventType, events::add));
     return listenerId;
   }
