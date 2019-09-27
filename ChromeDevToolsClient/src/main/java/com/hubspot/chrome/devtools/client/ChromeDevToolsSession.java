@@ -67,6 +67,7 @@ import com.hubspot.chrome.devtools.client.core.overlay.Overlay;
 import com.hubspot.chrome.devtools.client.core.page.FrameId;
 import com.hubspot.chrome.devtools.client.core.page.NavigateResult;
 import com.hubspot.chrome.devtools.client.core.page.Page;
+import com.hubspot.chrome.devtools.client.core.page.PrintToPDFResult;
 import com.hubspot.chrome.devtools.client.core.performance.Performance;
 import com.hubspot.chrome.devtools.client.core.profiler.Profiler;
 import com.hubspot.chrome.devtools.client.core.runtime.CallArgument;
@@ -292,10 +293,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public byte[] printToPDF() {
-    String data = getPage().printToPDF(null, null, null, null,
+    PrintToPDFResult result = getPage().printToPDF(null, null, null, null,
         null, null, null, null, null, null,
-        null, null, null, null, null);
-    return Base64.getDecoder().decode(data);
+        null, null, null, null, null, null);
+    return Base64.getDecoder().decode(result.data);
   }
 
   public String getId() {
