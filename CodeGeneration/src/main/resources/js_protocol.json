@@ -1,6 +1,3 @@
-// 20210413152452
-// https://raw.githubusercontent.com/ChromeDevTools/devtools-protocol/master/json/js_protocol.json
-
 {
     "version": {
         "major": "1",
