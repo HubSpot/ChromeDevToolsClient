@@ -1,13 +1,12 @@
 package com.hubspot.chrome.devtools.client.examples;
 
-import java.util.Base64;
-import java.util.List;
-
 import com.hubspot.chrome.devtools.client.ChromeDevToolsClient;
 import com.hubspot.chrome.devtools.client.ChromeDevToolsSession;
 import com.hubspot.chrome.devtools.client.FileExtension;
 import com.hubspot.chrome.devtools.client.core.dom.BoxModel;
 import com.hubspot.chrome.devtools.client.core.page.Viewport;
+import java.util.Base64;
+import java.util.List;
 
 // Run chrome with args --headless --disable-gpu --remote-debugging-port=9292
 public class ScreenshotExample {
@@ -50,7 +49,7 @@ public class ScreenshotExample {
           .build();
 
       // Get the screenshot data as a base 64 encoded string
-      String base64Data = session.getPage().captureScreenshot("png", null, clip, null);
+      String base64Data = session.getPage().captureScreenshot("png", null, clip, null, null);
       byte[] data = Base64.getDecoder().decode(base64Data);
 
       // Alternatively use the client shortcut to capture either a PNG or PDF screenshot
