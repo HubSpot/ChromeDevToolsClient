@@ -158,26 +158,6 @@
                     ]
                 },
                 {
-                    "id": "LocationRange",
-                    "description": "Location range within one script.",
-                    "experimental": true,
-                    "type": "object",
-                    "properties": [
-                        {
-                            "name": "scriptId",
-                            "$ref": "Runtime.ScriptId"
-                        },
-                        {
-                            "name": "start",
-                            "$ref": "ScriptPosition"
-                        },
-                        {
-                            "name": "end",
-                            "$ref": "ScriptPosition"
-                        }
-                    ]
-                },
-                {
                     "id": "CallFrame",
                     "description": "JavaScript call frame. Array of call frames form the call stack.",
                     "type": "object",
@@ -247,8 +227,7 @@
                                 "block",
                                 "script",
                                 "eval",
-                                "module",
-                                "wasm-expression-stack"
+                                "module"
                             ]
                         },
                         {
@@ -323,39 +302,6 @@
                             ]
                         }
                     ]
-                },
-                {
-                    "id": "ScriptLanguage",
-                    "description": "Enum of possible script languages.",
-                    "type": "string",
-                    "enum": [
-                        "JavaScript",
-                        "WebAssembly"
-                    ]
-                },
-                {
-                    "id": "DebugSymbols",
-                    "description": "Debug symbols available for a wasm script.",
-                    "type": "object",
-                    "properties": [
-                        {
-                            "name": "type",
-                            "description": "Type of the debug symbols.",
-                            "type": "string",
-                            "enum": [
-                                "None",
-                                "SourceMap",
-                                "EmbeddedDWARF",
-                                "ExternalDWARF"
-                            ]
-                        },
-                        {
-                            "name": "externalURL",
-                            "description": "URL of the external symbol source.",
-                            "optional": true,
-                            "type": "string"
-                        }
-                    ]
                 }
             ],
             "commands": [
@@ -393,6 +339,13 @@
                             "experimental": true,
                             "optional": true,
                             "type": "number"
+                        },
+                        {
+                            "name": "supportsWasmDwarf",
+                            "description": "Whether to report Wasm modules as raw binaries instead of disassembled functions.",
+                            "experimental": true,
+                            "optional": true,
+                            "type": "boolean"
                         }
                     ],
                     "returns": [
@@ -523,21 +476,14 @@
                     "returns": [
                         {
                             "name": "scriptSource",
-                            "description": "Script source (empty in case of Wasm bytecode).",
-                            "type": "string"
-                        },
-                        {
-                            "name": "bytecode",
-                            "description": "Wasm bytecode. (Encoded as a base64 string when passed over JSON)",
-                            "optional": true,
+                            "description": "Script source.",
                             "type": "string"
                         }
                     ]
                 },
                 {
                     "name": "getWasmBytecode",
-                    "description": "This command is deprecated. Use getScriptSource instead.",
-                    "deprecated": true,
+                    "description": "Returns bytecode for the WebAssembly script with given id.",
                     "parameters": [
                         {
                             "name": "scriptId",
@@ -548,7 +494,7 @@
                     "returns": [
                         {
                             "name": "bytecode",
-                            "description": "Script source. (Encoded as a base64 string when passed over JSON)",
+                            "description": "Script source.",
                             "type": "string"
                         }
                     ]
@@ -632,15 +578,7 @@
                 },
                 {
                     "name": "resume",
-                    "description": "Resumes JavaScript execution.",
-                    "parameters": [
-                        {
-                            "name": "terminateOnResume",
-                            "description": "Set to true to terminate execution upon resuming execution. In contrast\nto Runtime.terminateExecution, this will allows to execute further\nJavaScript (i.e. via evaluation) until execution of the paused code\nis actually resumed, at which point termination is triggered.\nIf execution is currently not paused, this parameter has no effect.",
-                            "optional": true,
-                            "type": "boolean"
-                        }
-                    ]
+                    "description": "Resumes JavaScript execution."
                 },
                 {
                     "name": "searchInContent",
@@ -1001,16 +939,6 @@
                             "experimental": true,
                             "optional": true,
                             "type": "boolean"
-                        },
-                        {
-                            "name": "skipList",
-                            "description": "The skipList specifies location ranges that should be skipped on step into.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "array",
-                            "items": {
-                                "$ref": "LocationRange"
-                            }
                         }
                     ]
                 },
@@ -1020,19 +948,7 @@
                 },
                 {
                     "name": "stepOver",
-                    "description": "Steps over the statement.",
-                    "parameters": [
-                        {
-                            "name": "skipList",
-                            "description": "The skipList specifies location ranges that should be skipped on step over.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "array",
-                            "items": {
-                                "$ref": "LocationRange"
-                            }
-                        }
-                    ]
+                    "description": "Steps over the statement."
                 }
             ],
             "events": [
@@ -1071,7 +987,6 @@
                             "enum": [
                                 "ambiguous",
                                 "assert",
-                                "CSPViolation",
                                 "debugCommand",
                                 "DOM",
                                 "EventListener",
@@ -1205,27 +1120,6 @@
                             "experimental": true,
                             "optional": true,
                             "$ref": "Runtime.StackTrace"
-                        },
-                        {
-                            "name": "codeOffset",
-                            "description": "If the scriptLanguage is WebAssembly, the code section offset in the module.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "integer"
-                        },
-                        {
-                            "name": "scriptLanguage",
-                            "description": "The language of the script.",
-                            "experimental": true,
-                            "optional": true,
-                            "$ref": "Debugger.ScriptLanguage"
-                        },
-                        {
-                            "name": "embedderName",
-                            "description": "The name the embedder supplied for this script.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "string"
                         }
                     ]
                 },
@@ -1316,34 +1210,6 @@
                             "experimental": true,
                             "optional": true,
                             "$ref": "Runtime.StackTrace"
-                        },
-                        {
-                            "name": "codeOffset",
-                            "description": "If the scriptLanguage is WebAssembly, the code section offset in the module.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "integer"
-                        },
-                        {
-                            "name": "scriptLanguage",
-                            "description": "The language of the script.",
-                            "experimental": true,
-                            "optional": true,
-                            "$ref": "Debugger.ScriptLanguage"
-                        },
-                        {
-                            "name": "debugSymbols",
-                            "description": "If the scriptLanguage is WebASsembly, the source of debug symbols for the module.",
-                            "experimental": true,
-                            "optional": true,
-                            "$ref": "Debugger.DebugSymbols"
-                        },
-                        {
-                            "name": "embedderName",
-                            "description": "The name the embedder supplied for this script.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "string"
                         }
                     ]
                 }
@@ -1541,11 +1407,6 @@
                             "description": "If true 'reportHeapSnapshotProgress' events will be generated while snapshot is being taken\nwhen the tracking is stopped.",
                             "optional": true,
                             "type": "boolean"
-                        },
-                        {
-                            "name": "treatGlobalObjectsAsRoots",
-                            "optional": true,
-                            "type": "boolean"
                         }
                     ]
                 },
@@ -1555,12 +1416,6 @@
                         {
                             "name": "reportProgress",
                             "description": "If true 'reportHeapSnapshotProgress' events will be generated while snapshot is being taken.",
-                            "optional": true,
-                            "type": "boolean"
-                        },
-                        {
-                            "name": "treatGlobalObjectsAsRoots",
-                            "description": "If true, a raw snapshot without artifical roots will be generated",
                             "optional": true,
                             "type": "boolean"
                         }
@@ -1873,47 +1728,6 @@
                             }
                         }
                     ]
-                },
-                {
-                    "id": "CounterInfo",
-                    "description": "Collected counter information.",
-                    "experimental": true,
-                    "type": "object",
-                    "properties": [
-                        {
-                            "name": "name",
-                            "description": "Counter name.",
-                            "type": "string"
-                        },
-                        {
-                            "name": "value",
-                            "description": "Counter value.",
-                            "type": "integer"
-                        }
-                    ]
-                },
-                {
-                    "id": "RuntimeCallCounterInfo",
-                    "description": "Runtime call counter information.",
-                    "experimental": true,
-                    "type": "object",
-                    "properties": [
-                        {
-                            "name": "name",
-                            "description": "Counter name.",
-                            "type": "string"
-                        },
-                        {
-                            "name": "value",
-                            "description": "Counter value.",
-                            "type": "number"
-                        },
-                        {
-                            "name": "time",
-                            "description": "Counter time in seconds.",
-                            "type": "number"
-                        }
-                    ]
                 }
             ],
             "commands": [
@@ -1966,19 +1780,6 @@
                             "description": "Collect block-based coverage.",
                             "optional": true,
                             "type": "boolean"
-                        },
-                        {
-                            "name": "allowTriggeredUpdates",
-                            "description": "Allow the backend to send updates on its own initiative",
-                            "optional": true,
-                            "type": "boolean"
-                        }
-                    ],
-                    "returns": [
-                        {
-                            "name": "timestamp",
-                            "description": "Monotonically increasing time (in seconds) when the coverage update was taken in the backend.",
-                            "type": "number"
                         }
                     ]
                 },
@@ -2017,11 +1818,6 @@
                             "items": {
                                 "$ref": "ScriptCoverage"
                             }
-                        },
-                        {
-                            "name": "timestamp",
-                            "description": "Monotonically increasing time (in seconds) when the coverage update was taken in the backend.",
-                            "type": "number"
                         }
                     ]
                 },
@@ -2036,56 +1832,6 @@
                             "type": "array",
                             "items": {
                                 "$ref": "ScriptTypeProfile"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "enableCounters",
-                    "description": "Enable counters collection.",
-                    "experimental": true
-                },
-                {
-                    "name": "disableCounters",
-                    "description": "Disable counters collection.",
-                    "experimental": true
-                },
-                {
-                    "name": "getCounters",
-                    "description": "Retrieve counters.",
-                    "experimental": true,
-                    "returns": [
-                        {
-                            "name": "result",
-                            "description": "Collected counters information.",
-                            "type": "array",
-                            "items": {
-                                "$ref": "CounterInfo"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "name": "enableRuntimeCallStats",
-                    "description": "Enable run time call stats collection.",
-                    "experimental": true
-                },
-                {
-                    "name": "disableRuntimeCallStats",
-                    "description": "Disable run time call stats collection.",
-                    "experimental": true
-                },
-                {
-                    "name": "getRuntimeCallStats",
-                    "description": "Retrieve run time call stats.",
-                    "experimental": true,
-                    "returns": [
-                        {
-                            "name": "result",
-                            "description": "Collected runtime call counter information.",
-                            "type": "array",
-                            "items": {
-                                "$ref": "RuntimeCallCounterInfo"
                             }
                         }
                     ]
@@ -2136,31 +1882,6 @@
                             "type": "string"
                         }
                     ]
-                },
-                {
-                    "name": "preciseCoverageDeltaUpdate",
-                    "description": "Reports coverage delta since the last poll (either from an event like this, or from\n`takePreciseCoverage` for the current isolate. May only be sent if precise code\ncoverage has been started. This event can be trigged by the embedder to, for example,\ntrigger collection of coverage data immediatelly at a certain point in time.",
-                    "experimental": true,
-                    "parameters": [
-                        {
-                            "name": "timestamp",
-                            "description": "Monotonically increasing time (in seconds) when the coverage update was taken in the backend.",
-                            "type": "number"
-                        },
-                        {
-                            "name": "occassion",
-                            "description": "Identifier for distinguishing coverage events.",
-                            "type": "string"
-                        },
-                        {
-                            "name": "result",
-                            "description": "Coverage data for the current isolate.",
-                            "type": "array",
-                            "items": {
-                                "$ref": "ScriptCoverage"
-                            }
-                        }
-                    ]
                 }
             ]
         },
@@ -2205,7 +1926,7 @@
                         },
                         {
                             "name": "subtype",
-                            "description": "Object subtype hint. Specified for `object` type values only.\nNOTE: If you change anything here, make sure to also update\n`subtype` in `ObjectPreview` and `PropertyPreview` below.",
+                            "description": "Object subtype hint. Specified for `object` type values only.",
                             "optional": true,
                             "type": "string",
                             "enum": [
@@ -2225,9 +1946,7 @@
                                 "promise",
                                 "typedarray",
                                 "arraybuffer",
-                                "dataview",
-                                "webassemblymemory",
-                                "wasmvalue"
+                                "dataview"
                             ]
                         },
                         {
@@ -2331,14 +2050,7 @@
                                 "weakset",
                                 "iterator",
                                 "generator",
-                                "error",
-                                "proxy",
-                                "promise",
-                                "typedarray",
-                                "arraybuffer",
-                                "dataview",
-                                "webassemblymemory",
-                                "wasmvalue"
+                                "error"
                             ]
                         },
                         {
@@ -2426,14 +2138,7 @@
                                 "weakset",
                                 "iterator",
                                 "generator",
-                                "error",
-                                "proxy",
-                                "promise",
-                                "typedarray",
-                                "arraybuffer",
-                                "dataview",
-                                "webassemblymemory",
-                                "wasmvalue"
+                                "error"
                             ]
                         }
                     ]
@@ -2552,19 +2257,6 @@
                         {
                             "name": "value",
                             "description": "The value associated with the private property.",
-                            "optional": true,
-                            "$ref": "RemoteObject"
-                        },
-                        {
-                            "name": "get",
-                            "description": "A function which serves as a getter for the private property,\nor `undefined` if there is no getter (accessor descriptors only).",
-                            "optional": true,
-                            "$ref": "RemoteObject"
-                        },
-                        {
-                            "name": "set",
-                            "description": "A function which serves as a setter for the private property,\nor `undefined` if there is no setter (accessor descriptors only).",
-                            "optional": true,
                             "$ref": "RemoteObject"
                         }
                     ]
@@ -2617,12 +2309,6 @@
                         {
                             "name": "name",
                             "description": "Human readable name describing given context.",
-                            "type": "string"
-                        },
-                        {
-                            "name": "uniqueId",
-                            "description": "A system-unique execution context identifier. Unlike the id, this is unique accross\nmultiple processes, so can be reliably used to identify specific context while backend\nperforms a cross-process navigation.",
-                            "experimental": true,
                             "type": "string"
                         },
                         {
@@ -2991,7 +2677,7 @@
                         },
                         {
                             "name": "contextId",
-                            "description": "Specifies in which execution context to perform evaluation. If the parameter is omitted the\nevaluation will be performed in the context of the inspected page.\nThis is mutually exclusive with `uniqueContextId`, which offers an\nalternative way to identify the execution context that is more reliable\nin a multi-process environment.",
+                            "description": "Specifies in which execution context to perform evaluation. If the parameter is omitted the\nevaluation will be performed in the context of the inspected page.",
                             "optional": true,
                             "$ref": "ExecutionContextId"
                         },
@@ -3022,7 +2708,7 @@
                         },
                         {
                             "name": "throwOnSideEffect",
-                            "description": "Whether to throw an exception if side effect cannot be ruled out during evaluation.\nThis implies `disableBreaks` below.",
+                            "description": "Whether to throw an exception if side effect cannot be ruled out during evaluation.",
                             "experimental": true,
                             "optional": true,
                             "type": "boolean"
@@ -3033,34 +2719,6 @@
                             "experimental": true,
                             "optional": true,
                             "$ref": "TimeDelta"
-                        },
-                        {
-                            "name": "disableBreaks",
-                            "description": "Disable breakpoints during execution.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "boolean"
-                        },
-                        {
-                            "name": "replMode",
-                            "description": "Setting this flag to true enables `let` re-declaration and top-level `await`.\nNote that `let` variables can only be re-declared if they originate from\n`replMode` themselves.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "boolean"
-                        },
-                        {
-                            "name": "allowUnsafeEvalBlockedByCSP",
-                            "description": "The Content Security Policy (CSP) for the target might block 'unsafe-eval'\nwhich includes eval(), Function(), setTimeout() and setInterval()\nwhen called with non-callable arguments. This flag bypasses CSP for this\nevaluation and allows unsafe-eval. Defaults to true.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "boolean"
-                        },
-                        {
-                            "name": "uniqueContextId",
-                            "description": "An alternative way to specify the execution context to evaluate in.\nCompared to contextId that may be reused accross processes, this is guaranteed to be\nsystem-unique, so it can be used to prevent accidental evaluation of the expression\nin context different than intended (e.g. as a result of navigation accross process\nboundaries).\nThis is mutually exclusive with `contextId`.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "string"
                         }
                     ],
                     "returns": [
@@ -3347,7 +3005,7 @@
                 },
                 {
                     "name": "addBinding",
-                    "description": "If executionContextId is empty, adds binding with the given name on the\nglobal objects of all inspected contexts, including those created later,\nbindings survive reloads.\nBinding function takes exactly one argument, this argument should be string,\nin case of any other input, function throws an exception.\nEach binding function call produces Runtime.bindingCalled notification.",
+                    "description": "If executionContextId is empty, adds binding with the given name on the\nglobal objects of all inspected contexts, including those created later,\nbindings survive reloads.\nIf executionContextId is specified, adds binding only on global object of\ngiven execution context.\nBinding function takes exactly one argument, this argument should be string,\nin case of any other input, function throws an exception.\nEach binding function call produces Runtime.bindingCalled notification.",
                     "experimental": true,
                     "parameters": [
                         {
@@ -3356,16 +3014,8 @@
                         },
                         {
                             "name": "executionContextId",
-                            "description": "If specified, the binding would only be exposed to the specified\nexecution context. If omitted and `executionContextName` is not set,\nthe binding is exposed to all execution contexts of the target.\nThis parameter is mutually exclusive with `executionContextName`.",
                             "optional": true,
                             "$ref": "ExecutionContextId"
-                        },
-                        {
-                            "name": "executionContextName",
-                            "description": "If specified, the binding is exposed to the executionContext with\nmatching name, even for contexts created after the binding is added.\nSee also `ExecutionContext.name` and `worldName` parameter to\n`Page.addScriptToEvaluateOnNewDocument`.\nThis parameter is mutually exclusive with `executionContextId`.",
-                            "experimental": true,
-                            "optional": true,
-                            "type": "string"
                         }
                     ]
                 },
