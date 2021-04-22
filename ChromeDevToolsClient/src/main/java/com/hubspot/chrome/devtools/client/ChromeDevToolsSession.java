@@ -132,6 +132,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     websocket.getResponse(request.getId());
   }
 
+  public void sendPing() {
+    websocket.sendPing();
+  }
+
   @Override
   public <T> T send(ChromeRequest request, TypeReference<T> valueType) {
     sendChromeRequest(request);
