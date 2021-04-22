@@ -1,5 +1,16 @@
 package com.hubspot.chrome.devtools.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.rholder.retry.RetryException;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
+import com.hubspot.chrome.devtools.base.ChromeResponse;
+import com.hubspot.chrome.devtools.base.ChromeResponseErrorBody;
+import com.hubspot.chrome.devtools.client.core.Event;
+import com.hubspot.chrome.devtools.client.core.EventType;
+import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -12,23 +23,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.rholder.retry.RetryException;
-import com.github.rholder.retry.Retryer;
-import com.github.rholder.retry.RetryerBuilder;
-import com.github.rholder.retry.StopStrategies;
-import com.github.rholder.retry.WaitStrategies;
-import com.hubspot.chrome.devtools.base.ChromeResponse;
-import com.hubspot.chrome.devtools.base.ChromeResponseErrorBody;
-import com.hubspot.chrome.devtools.client.core.Event;
-import com.hubspot.chrome.devtools.client.core.EventType;
-import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 
 public class ChromeWebSocketClient extends WebSocketClient {
   private final Logger LOG = LoggerFactory.getLogger(ChromeWebSocketClient.class);
@@ -70,6 +68,15 @@ public class ChromeWebSocketClient extends WebSocketClient {
   @Override
   public void onOpen(ServerHandshake handshakedata) {
     LOG.debug("Connected ({})", handshakedata.getHttpStatusMessage());
+
+    // Connection checking triggers false positive lost connection checks, which causes premature
+    // websocket disconnects. Chrome doesn't seem to respond to websocket pings with a pong response,
+    // so disabling this is only our option at the current time.
+    disableConnectionLostChecking();
+  }
+
+  private void disableConnectionLostChecking() {
+    this.setConnectionLostTimeout(-1);
   }
 
   @Override
