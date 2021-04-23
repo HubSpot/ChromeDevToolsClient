@@ -1,26 +1,5 @@
 package com.hubspot.chrome.devtools.client;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,6 +36,7 @@ import com.hubspot.chrome.devtools.client.core.headlessexperimental.HeadlessExpe
 import com.hubspot.chrome.devtools.client.core.heapprofiler.HeapProfiler;
 import com.hubspot.chrome.devtools.client.core.indexeddb.IndexedDB;
 import com.hubspot.chrome.devtools.client.core.input.Input;
+import com.hubspot.chrome.devtools.client.core.input.MouseButton;
 import com.hubspot.chrome.devtools.client.core.inspector.Inspector;
 import com.hubspot.chrome.devtools.client.core.io.IO;
 import com.hubspot.chrome.devtools.client.core.layertree.LayerTree;
@@ -84,6 +64,25 @@ import com.hubspot.chrome.devtools.client.core.target.Target;
 import com.hubspot.chrome.devtools.client.core.tethering.Tethering;
 import com.hubspot.chrome.devtools.client.core.tracing.Tracing;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChromeDevToolsSession implements ChromeSessionCore {
   private final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsSession.class);
@@ -259,7 +258,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public NavigateResult navigate(String url) {
-    return getPage().navigate(url, null, null, null);
+    return getPage().navigate(url, null, null, null, null);
   }
 
   public String getUrl() {
@@ -267,7 +266,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public EvaluateResult evaluate(String javascript) {
-    return getRuntime().evaluate(javascript, null, null, null, null, null, null, null, null, null, null);
+    return getRuntime().evaluate(javascript, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
   }
 
   public FrameId getFrameId() {
@@ -288,7 +287,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public byte[] captureScreenshot(FileExtension extension) {
-    String data = getPage().captureScreenshot(extension.name().toLowerCase(), null, null, null);
+    String data = getPage().captureScreenshot(extension.name().toLowerCase(), null, null, null, null);
     return Base64.getDecoder().decode(data);
   }
 
@@ -445,8 +444,8 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     double top  = Math.floor(content.getValue().get(1).doubleValue());
     int clickCount = 1;
     Input input = getInput();
-    input.dispatchMouseEvent("mousePressed", left, top, null, null,"left", null, clickCount, null, null, null);
-    input.dispatchMouseEvent("mouseReleased", left, top, null, null, "left", null, clickCount, null, null, null);
+    input.dispatchMouseEvent("mousePressed", left, top, null, null, MouseButton.LEFT, null, clickCount, null, null, null, null, null, null, null, null);
+    input.dispatchMouseEvent("mouseReleased", left, top, null, null, MouseButton.LEFT, null, clickCount, null, null, null, null, null, null, null, null);
     return true;
   }
 
