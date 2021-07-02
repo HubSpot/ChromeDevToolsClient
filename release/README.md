@@ -16,7 +16,7 @@ Run the pdl_to_json.py scipt to update the corresponding json file:
 python pdl_to_json.py --pdl_file ../CodeGeneration/src/main/resources/browser_protocol.pdl --json_file ../CodeGeneration/src/main/resources/browser_protocol.json
 ```
 
-Next, find the version of v8 used by the tagged version of chrome. This can be found at the /json/version endpoint when connecting to the devtools port when running chrome. For `91.0.4472.114` this is V8 `9.1.269.36`. From that, you can find the js_protocol.pdl at a url like:
+Next, find the version of v8 used by the tagged version of chrome. The revision of v8 used can be seen in the source code at a url like https://source.chromium.org/chromium/chromium/src/+/refs/tags/91.0.4472.114:DEPS;l=214 . Find teh v8_revision which will be a commit sha that can then be used to check the release version in the v8 source code like https://github.com/v8/v8/commit/10762194cbe9c1ff33799b335889175c8948ed38. For `91.0.4472.114` this is V8 `9.1.269.36`. From that, you can find the js_protocol.pdl at a url like:
 
 https://github.com/v8/v8/blob/9.1.269.36/include/js_protocol.pdl
 
