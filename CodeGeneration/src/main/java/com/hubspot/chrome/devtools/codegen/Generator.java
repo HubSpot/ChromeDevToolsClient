@@ -456,8 +456,23 @@ public class Generator {
         specs.add(returnTypeSpec.get());
       }
 
-      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false));
-      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true));
+      // Generate full method call with all args
+      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, 0));
+      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, 0));
+
+      // If some args are optional, generate method with optional args omitted
+      List<Property> commandArgs = command.getParameters().orElse(Collections.emptyList());
+      if (!commandArgs.isEmpty()) {
+        int lastIndex = commandArgs.size() - 1;
+        int omitted = 0;
+
+        while (commandArgs.get(lastIndex).getOptional().orElse(false) && lastIndex > 0) {
+          omitted++;
+          builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, omitted));
+          builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, omitted));
+          lastIndex--;
+        }
+      }
     }
 
     if (domain.getDescription().isPresent()) {
@@ -522,7 +537,7 @@ public class Generator {
     return capitalize(event.getName()) + "Event";
   }
 
-  private MethodSpec generateMethodSpec(Command command, Domain domain, Optional<String> returnTypeName, boolean async) {
+  private MethodSpec generateMethodSpec(Command command, Domain domain, Optional<String> returnTypeName, boolean async, int omitCount) {
     String methodName = command.getName();
     String sendCommand = "chromeSession.send";
     if (async) {
@@ -538,6 +553,9 @@ public class Generator {
     String packageName = getPackageName(domain);
     CodeBlock.Builder putParamsBuilder = CodeBlock.builder().add("chromeRequest");
 
+    List<Property> properties = command.getParameters().orElse(Collections.emptyList());
+    int maxArgs = properties.size() - omitCount;
+    int argCount = 0;
     for (Property property : command.getParameters().orElse(Collections.emptyList())) {
       hasParams = true;
       methodBuilder.addParameter(getTypeName(property, packageName), property.getName());
@@ -545,6 +563,10 @@ public class Generator {
         parameterDescriptions.add(formatParamForJavadoc(property));
       }
       putParamsBuilder.add("\n.putParams($1S, $1N)", property.getName());
+      argCount++;
+      if (argCount >= maxArgs) {
+        break;
+      }
     }
     if (hasParams) {
       methodBuilder.addStatement(putParamsBuilder.build());
