@@ -599,6 +599,7 @@
                 {
                     "name": "restartFrame",
                     "description": "Restarts particular call frame from the beginning.",
+                    "deprecated": true,
                     "parameters": [
                         {
                             "name": "callFrameId",
@@ -1546,6 +1547,12 @@
                             "name": "treatGlobalObjectsAsRoots",
                             "optional": true,
                             "type": "boolean"
+                        },
+                        {
+                            "name": "captureNumericValue",
+                            "description": "If true, numerical values are included in the snapshot",
+                            "optional": true,
+                            "type": "boolean"
                         }
                     ]
                 },
@@ -1561,6 +1568,12 @@
                         {
                             "name": "treatGlobalObjectsAsRoots",
                             "description": "If true, a raw snapshot without artifical roots will be generated",
+                            "optional": true,
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "captureNumericValue",
+                            "description": "If true, numerical values are included in the snapshot",
                             "optional": true,
                             "type": "boolean"
                         }
@@ -3356,7 +3369,8 @@
                         },
                         {
                             "name": "executionContextId",
-                            "description": "If specified, the binding would only be exposed to the specified\nexecution context. If omitted and `executionContextName` is not set,\nthe binding is exposed to all execution contexts of the target.\nThis parameter is mutually exclusive with `executionContextName`.",
+                            "description": "If specified, the binding would only be exposed to the specified\nexecution context. If omitted and `executionContextName` is not set,\nthe binding is exposed to all execution contexts of the target.\nThis parameter is mutually exclusive with `executionContextName`.\nDeprecated in favor of `executionContextName` due to an unclear use case\nand bugs in implementation (crbug.com/1169639). `executionContextId` will be\nremoved in the future.",
+                            "deprecated": true,
                             "optional": true,
                             "$ref": "ExecutionContextId"
                         },

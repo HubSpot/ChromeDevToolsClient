@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" ?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,7 +9,7 @@
 
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
-  <version>91.0.4472.114-SNAPSHOT</version>
+  <version>92.0.4515.159-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -20,8 +19,8 @@
   </modules>
 
   <properties>
-    <chromium.version>91.0.4472.114</chromium.version>
-    <v8.version>9.1.269.36</v8.version>
+    <chromium.version>92.0.4515.159</chromium.version>
+    <v8.version>9.2.230.29</v8.version>
   </properties>
 
   <dependencyManagement>
