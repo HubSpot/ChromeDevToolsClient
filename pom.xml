@@ -9,7 +9,7 @@
 
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
-  <version>93.0.4577.82-SNAPSHOT</version>
+  <version>94.0.4606.54-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -19,8 +19,8 @@
   </modules>
 
   <properties>
-    <chromium.version>93.0.4577.82</chromium.version>
-    <v8.version>9.3.345.19</v8.version>
+    <chromium.version>94.0.4606.54</chromium.version>
+    <v8.version>9.4.146.16</v8.version>
   </properties>
 
   <dependencyManagement>
