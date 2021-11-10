@@ -9,6 +9,10 @@
 
   <artifactId>ChromeDevToolsBase</artifactId>
 
+  <properties>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
