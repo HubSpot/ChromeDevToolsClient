@@ -1,2 +1,2 @@
 depends:
-  - com.hubspot.chrome:CodeGeneration
+  - name: ChromeDevToolsClient-CodeGeneration
