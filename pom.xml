@@ -22,7 +22,6 @@
     <chromium.version>94.0.4606.61</chromium.version>
     <v8.version>9.4.146.16</v8.version>
     <project.build.targetJdk>11</project.build.targetJdk>
-    <project.build.releaseJdk>11</project.build.releaseJdk>
   </properties>
 
   <dependencyManagement>
