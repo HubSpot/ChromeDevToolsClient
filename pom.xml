@@ -25,6 +25,7 @@
     <project.build.releaseJdk>${project.build.targetJdk}</project.build.releaseJdk>
     <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
     <dep.plugin.dependency.version>3.2.0</dep.plugin.dependency.version>
+    <dep.plugin.pmd.version>3.13.0</dep.plugin.pmd.version>
   </properties>
 
   <dependencyManagement>
