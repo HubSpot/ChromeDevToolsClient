@@ -23,6 +23,7 @@
     <v8.version>9.4.146.16</v8.version>
     <project.build.targetJdk>11</project.build.targetJdk>
     <project.build.releaseJdk>${project.build.targetJdk}</project.build.releaseJdk>
+    <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
     <dep.plugin.dependency.version>3.2.0</dep.plugin.dependency.version>
   </properties>
 
