@@ -6,7 +6,6 @@
     <artifactId>basepom</artifactId>
     <version>25.7</version>
   </parent>
-
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
   <version>94.0.4606.61-SNAPSHOT</version>
