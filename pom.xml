@@ -8,7 +8,7 @@
   </parent>
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
-  <version>99.0.4844.84-SNAPSHOT</version>
+  <version>100.0.4896.127-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -18,8 +18,8 @@
   </modules>
 
   <properties>
-    <chromium.version>99.0.4844.84</chromium.version>
-    <v8.version>9.9.115.10</v8.version>
+    <chromium.version>100.0.4896.127</chromium.version>
+    <v8.version>10.0.139.15</v8.version>
     <project.build.targetJdk>11</project.build.targetJdk>
     <project.build.releaseJdk>${project.build.targetJdk}</project.build.releaseJdk>
     <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
