@@ -16,7 +16,6 @@ import com.hubspot.chrome.devtools.base.ChromeSessionCore;
 import com.hubspot.chrome.devtools.client.core.EventType;
 import com.hubspot.chrome.devtools.client.core.accessibility.Accessibility;
 import com.hubspot.chrome.devtools.client.core.animation.Animation;
-import com.hubspot.chrome.devtools.client.core.applicationcache.ApplicationCache;
 import com.hubspot.chrome.devtools.client.core.audits.Audits;
 import com.hubspot.chrome.devtools.client.core.browser.Browser;
 import com.hubspot.chrome.devtools.client.core.cachestorage.CacheStorage;
@@ -475,7 +474,6 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   // to transition, but if they're transitioning to this anyways, they may as well.
   public Accessibility getAccessibility() { return new Accessibility(this, objectMapper); }
   public Animation getAnimation() { return new Animation(this, objectMapper); }
-  public ApplicationCache getApplicationCache() { return new ApplicationCache(this, objectMapper); }
   public Audits getAudits() { return new Audits(this, objectMapper); }
   public Browser getBrowser() { return new Browser(this, objectMapper); }
   public CacheStorage getCacheStorage() { return new CacheStorage(this, objectMapper); }
