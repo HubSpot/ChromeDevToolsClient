@@ -456,14 +456,12 @@ public class Generator {
         specs.add(returnTypeSpec.get());
       }
 
-      System.out.println(command);
       // Generate full method call with all args
       builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, 0));
       builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, 0));
 
       // If some args are optional, generate method with optional args omitted
       List<Property> commandArgs = command.getParameters().orElse(Collections.emptyList());
-      System.out.println(commandArgs);
       if (!commandArgs.isEmpty()) {
         int lastIndex = commandArgs.size() - 1;
         int omitted = 0;
@@ -473,7 +471,6 @@ public class Generator {
           builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, omitted));
           builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, omitted));
           lastIndex--;
-          System.out.println(omitted);
         }
       }
     }
