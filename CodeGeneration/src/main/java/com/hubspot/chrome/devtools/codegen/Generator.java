@@ -456,21 +456,24 @@ public class Generator {
         specs.add(returnTypeSpec.get());
       }
 
+      System.out.println(command);
       // Generate full method call with all args
       builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, 0));
       builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, 0));
 
       // If some args are optional, generate method with optional args omitted
       List<Property> commandArgs = command.getParameters().orElse(Collections.emptyList());
+      System.out.println(commandArgs);
       if (!commandArgs.isEmpty()) {
         int lastIndex = commandArgs.size() - 1;
         int omitted = 0;
 
-        while (commandArgs.get(lastIndex).getOptional().orElse(false) && lastIndex > 0) {
+        while (lastIndex >= 0 && commandArgs.get(lastIndex).getOptional().orElse(false)) {
           omitted++;
           builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, omitted));
           builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, omitted));
           lastIndex--;
+          System.out.println(omitted);
         }
       }
     }
@@ -556,16 +559,20 @@ public class Generator {
     List<Property> properties = command.getParameters().orElse(Collections.emptyList());
     int maxArgs = properties.size() - omitCount;
     int argCount = 0;
-    for (Property property : command.getParameters().orElse(Collections.emptyList())) {
-      hasParams = true;
-      methodBuilder.addParameter(getTypeName(property, packageName), property.getName());
-      if (property.getDescription().isPresent()) {
-        parameterDescriptions.add(formatParamForJavadoc(property));
-      }
-      putParamsBuilder.add("\n.putParams($1S, $1N)", property.getName());
-      argCount++;
-      if (argCount >= maxArgs) {
-        break;
+    if (maxArgs == 0) {
+      hasParams = false;
+    } else {
+      for (Property property : command.getParameters().orElse(Collections.emptyList())) {
+        hasParams = true;
+        methodBuilder.addParameter(getTypeName(property, packageName), property.getName());
+        if (property.getDescription().isPresent()) {
+          parameterDescriptions.add(formatParamForJavadoc(property));
+        }
+        putParamsBuilder.add("\n.putParams($1S, $1N)", property.getName());
+        argCount++;
+        if (argCount >= maxArgs) {
+          break;
+        }
       }
     }
     if (hasParams) {
