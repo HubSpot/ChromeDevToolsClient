@@ -293,7 +293,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   public byte[] printToPDF() {
     PrintToPDFResult result = getPage().printToPDF(null, null, null, null,
         null, null, null, null, null, null,
-        null, null, null, null, null, null);
+        null, null, null, null, null);
     return Base64.getDecoder().decode(result.data);
   }
 
