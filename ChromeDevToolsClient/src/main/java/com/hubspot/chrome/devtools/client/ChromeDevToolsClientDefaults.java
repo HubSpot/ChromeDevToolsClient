@@ -28,4 +28,5 @@ public class ChromeDevToolsClientDefaults {
   public static final HttpClient DEFAULT_HTTP_CLIENT = new NingHttpClient();
   public static final int DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS = 60 * 1000;
   public static final int DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS = 5 * 1000;
+  public static final boolean DEFAULT_START_NEW_TARGET = false;
 }
