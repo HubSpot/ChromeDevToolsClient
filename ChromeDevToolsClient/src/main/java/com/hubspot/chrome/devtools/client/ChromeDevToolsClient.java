@@ -38,12 +38,14 @@ public class ChromeDevToolsClient implements Closeable {
   private final ObjectMapper objectMapper;
   private final HttpClient httpClient;
   private final long actionTimeoutMillis;
+  private final boolean defaultStartNewTarget;
 
-  private ChromeDevToolsClient(ObjectMapper objectMapper, ExecutorService executorService, HttpClient httpClient, long actionTimeoutMillis, long sessionConnectTimeoutMillis) {
+  private ChromeDevToolsClient(ObjectMapper objectMapper, ExecutorService executorService, HttpClient httpClient, long actionTimeoutMillis, long sessionConnectTimeoutMillis, boolean defaultStartNewTarget) {
     this.executorService = executorService;
     this.objectMapper = objectMapper;
     this.httpClient = httpClient;
     this.actionTimeoutMillis = actionTimeoutMillis;
+    this.defaultStartNewTarget = defaultStartNewTarget;
     this.httpRetryer = RetryerBuilder.<TargetID>newBuilder()
         .retryIfExceptionOfType(ChromeDevToolsException.class)
         .retryIfExceptionOfType(HttpRuntimeException.class)
@@ -78,6 +80,9 @@ public class ChromeDevToolsClient implements Closeable {
   }
 
   private TargetID getFirstAvailableTargetId(String host, int port) {
+    if (defaultStartNewTarget) {
+      return startNewTarget(host, port);
+    }
     String url = String.format("http://%s:%d/json/list", host, port);
     HttpRequest httpRequest = HttpRequest.newBuilder()
         .setUrl(url)
@@ -90,10 +95,30 @@ public class ChromeDevToolsClient implements Closeable {
       throw new ChromeDevToolsException("Unable to find available chrome session info.");
     }
 
-    List<ChromeSessionInfo> sessions = response.getAs(new TypeReference<List<ChromeSessionInfo>>() {});
+    List<ChromeSessionInfo> sessions = response.getAs(new TypeReference<>() {});
     if (sessions.size() == 0) {
-      throw new ChromeDevToolsException("No chrome sessions available.");
+      return startNewTarget(host, port);
     }
+    return new TargetID(sessions.get(0).getId());
+  }
+
+  private TargetID startNewTarget(String host, int port) {
+    String url = String.format("http://%s:%d/json/new", host, port);
+    HttpRequest httpRequest = HttpRequest.newBuilder()
+        .setUrl(url)
+        .setMethod(Method.PUT)
+        .build();
+    HttpResponse response = httpClient.execute(httpRequest);
+
+    if (response.isError()) {
+      throw new ChromeDevToolsException("Unable to find available chrome session info.");
+    }
+
+    List<ChromeSessionInfo> sessions = response.getAs(new TypeReference<>() {});
+    if (sessions.size() == 0) {
+      throw new ChromeDevToolsException("Unable to create new websocket target");
+    }
+
     return new TargetID(sessions.get(0).getId());
   }
 
@@ -103,6 +128,7 @@ public class ChromeDevToolsClient implements Closeable {
     private HttpClient httpClient;
     private long actionTimeoutMillis;
     private long sessionConnectTimeoutMillis;
+    private boolean defaultStartNewTarget;
 
     public Builder() {
       this.executorService = ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE;
@@ -110,6 +136,7 @@ public class ChromeDevToolsClient implements Closeable {
       this.httpClient = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CLIENT;
       this.actionTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS;
       this.sessionConnectTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS;
+      this.defaultStartNewTarget = ChromeDevToolsClientDefaults.DEFAULT_START_NEW_TARGET;
     }
 
     public ChromeDevToolsClient.Builder setExecutorService(ExecutorService executorService) {
@@ -143,8 +170,13 @@ public class ChromeDevToolsClient implements Closeable {
       return this;
     }
 
+    public Builder setDefaultStartNewTarget(boolean defaultStartNewTarget) {
+      this.defaultStartNewTarget = defaultStartNewTarget;
+      return this;
+    }
+
     public ChromeDevToolsClient build() {
-      return new ChromeDevToolsClient(objectMapper, executorService, httpClient, actionTimeoutMillis, sessionConnectTimeoutMillis);
+      return new ChromeDevToolsClient(objectMapper, executorService, httpClient, actionTimeoutMillis, sessionConnectTimeoutMillis, defaultStartNewTarget);
     }
   }
 }
