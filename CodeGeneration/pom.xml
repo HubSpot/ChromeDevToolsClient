@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hubspot.chrome</groupId>
     <artifactId>ChromeDevTools-parent</artifactId>
-    <version>109.0.5414.74-SNAPSHOT</version>
+    <version>109.0.5414.119-SNAPSHOT</version>
   </parent>
 
   <artifactId>CodeGeneration</artifactId>
