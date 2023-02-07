@@ -992,7 +992,8 @@
                         "ExcludeSameSiteStrict",
                         "ExcludeInvalidSameParty",
                         "ExcludeSamePartyCrossPartyContext",
-                        "ExcludeDomainNonASCII"
+                        "ExcludeDomainNonASCII",
+                        "ExcludeThirdPartyCookieBlockedInFirstPartySet"
                     ]
                 },
                 {
@@ -1533,7 +1534,8 @@
                     "id": "GenericIssueErrorType",
                     "type": "string",
                     "enum": [
-                        "CrossOriginPortalPostMessageError"
+                        "CrossOriginPortalPostMessageError",
+                        "FormLabelForNameError"
                     ]
                 },
                 {
@@ -1550,6 +1552,11 @@
                             "name": "frameId",
                             "optional": true,
                             "$ref": "Page.FrameId"
+                        },
+                        {
+                            "name": "violatingNodeId",
+                            "optional": true,
+                            "$ref": "DOM.BackendNodeId"
                         }
                     ]
                 },
@@ -1659,14 +1666,14 @@
                     "enum": [
                         "ShouldEmbargo",
                         "TooManyRequests",
-                        "ManifestListHttpNotFound",
-                        "ManifestListNoResponse",
-                        "ManifestListInvalidResponse",
-                        "ManifestNotInManifestList",
-                        "ManifestListTooBig",
-                        "ManifestHttpNotFound",
-                        "ManifestNoResponse",
-                        "ManifestInvalidResponse",
+                        "WellKnownHttpNotFound",
+                        "WellKnownNoResponse",
+                        "WellKnownInvalidResponse",
+                        "ConfigNotInWellKnown",
+                        "WellKnownTooBig",
+                        "ConfigHttpNotFound",
+                        "ConfigNoResponse",
+                        "ConfigInvalidResponse",
                         "ClientMetadataHttpNotFound",
                         "ClientMetadataNoResponse",
                         "ClientMetadataInvalidResponse",
@@ -1996,6 +2003,11 @@
                             "items": {
                                 "$ref": "EventMetadata"
                             }
+                        },
+                        {
+                            "name": "storageKey",
+                            "description": "Storage key this event belongs to.",
+                            "type": "string"
                         }
                     ]
                 }
@@ -2176,7 +2188,8 @@
                     "type": "string",
                     "enum": [
                         "granted",
-                        "denied"
+                        "denied",
+                        "prompt"
                     ]
                 },
                 {
@@ -4373,6 +4386,11 @@
                             "type": "string"
                         },
                         {
+                            "name": "storageKey",
+                            "description": "Storage key of the cache.",
+                            "type": "string"
+                        },
+                        {
                             "name": "cacheName",
                             "description": "The name of the cache.",
                             "type": "string"
@@ -4440,7 +4458,14 @@
                     "parameters": [
                         {
                             "name": "securityOrigin",
-                            "description": "Security origin.",
+                            "description": "At least and at most one of securityOrigin, storageKey must be specified.\nSecurity origin.",
+                            "optional": true,
+                            "type": "string"
+                        },
+                        {
+                            "name": "storageKey",
+                            "description": "Storage key.",
+                            "optional": true,
                             "type": "string"
                         }
                     ],
@@ -8041,7 +8066,6 @@
                     "type": "string",
                     "enum": [
                         "avif",
-                        "jxl",
                         "webp"
                     ]
                 }
@@ -11810,6 +11834,7 @@
                         "SameSiteUnspecifiedTreatedAsLax",
                         "SameSiteNoneInsecure",
                         "UserPreferences",
+                        "ThirdPartyBlockedInFirstPartySet",
                         "SyntaxError",
                         "SchemeNotSupported",
                         "OverwriteSecure",
@@ -11838,6 +11863,7 @@
                         "SameSiteUnspecifiedTreatedAsLax",
                         "SameSiteNoneInsecure",
                         "UserPreferences",
+                        "ThirdPartyBlockedInFirstPartySet",
                         "UnknownError",
                         "SchemefulSameSiteStrict",
                         "SchemefulSameSiteLax",
@@ -13912,6 +13938,7 @@
                                 "ResourceExhausted",
                                 "AlreadyExists",
                                 "Unavailable",
+                                "Unauthorized",
                                 "BadResponse",
                                 "InternalError",
                                 "UnknownError",
@@ -15351,6 +15378,7 @@
                         "serial",
                         "shared-autofill",
                         "shared-storage",
+                        "smart-card",
                         "storage-access",
                         "sync-xhr",
                         "trust-token-redemption",
@@ -16273,6 +16301,7 @@
                         "InjectedStyleSheet",
                         "KeepaliveRequest",
                         "Dummy",
+                        "AuthorizationHeader",
                         "ContentSecurityHandler",
                         "ContentWebAuthenticationAPI",
                         "ContentFileChooser",
@@ -16411,6 +16440,7 @@
                         "SameSiteCrossOriginRedirectNotOptIn",
                         "SameSiteCrossOriginNavigationNotOptIn",
                         "ActivationNavigationParameterMismatch",
+                        "ActivatedInBackground",
                         "EmbedderHostDisallowed"
                     ]
                 }
@@ -17564,8 +17594,9 @@
                             "type": "string",
                             "enum": [
                                 "none",
-                                "autoaccept",
-                                "autoreject"
+                                "autoAccept",
+                                "autoReject",
+                                "autoOptOut"
                             ]
                         }
                     ]
@@ -19172,6 +19203,7 @@
                         "join",
                         "leave",
                         "update",
+                        "loaded",
                         "bid",
                         "win"
                     ]
@@ -19575,6 +19607,17 @@
                     ]
                 },
                 {
+                    "name": "trackCacheStorageForStorageKey",
+                    "description": "Registers storage key to be notified when an update occurs to its cache storage list.",
+                    "parameters": [
+                        {
+                            "name": "storageKey",
+                            "description": "Storage key.",
+                            "type": "string"
+                        }
+                    ]
+                },
+                {
                     "name": "trackIndexedDBForOrigin",
                     "description": "Registers origin to be notified when an update occurs to its IndexedDB.",
                     "parameters": [
@@ -19603,6 +19646,17 @@
                         {
                             "name": "origin",
                             "description": "Security origin.",
+                            "type": "string"
+                        }
+                    ]
+                },
+                {
+                    "name": "untrackCacheStorageForStorageKey",
+                    "description": "Unregisters storage key from receiving notifications for cache storage.",
+                    "parameters": [
+                        {
+                            "name": "storageKey",
+                            "description": "Storage key.",
                             "type": "string"
                         }
                     ]
@@ -19804,6 +19858,11 @@
                             "type": "string"
                         },
                         {
+                            "name": "storageKey",
+                            "description": "Storage key to update.",
+                            "type": "string"
+                        },
+                        {
                             "name": "cacheName",
                             "description": "Name of cache in origin.",
                             "type": "string"
@@ -19817,6 +19876,11 @@
                         {
                             "name": "origin",
                             "description": "Origin to update.",
+                            "type": "string"
+                        },
+                        {
+                            "name": "storageKey",
+                            "description": "Storage key to update.",
                             "type": "string"
                         }
                     ]
@@ -20193,6 +20257,22 @@
                             "name": "commandLine",
                             "description": "The command line string used to launch the browser. Will be the empty string if not\nsupported.",
                             "type": "string"
+                        }
+                    ]
+                },
+                {
+                    "name": "getFeatureState",
+                    "description": "Returns information about the feature state.",
+                    "parameters": [
+                        {
+                            "name": "featureState",
+                            "type": "string"
+                        }
+                    ],
+                    "returns": [
+                        {
+                            "name": "featureEnabled",
+                            "type": "boolean"
                         }
                     ]
                 },
@@ -21143,7 +21223,7 @@
                 },
                 {
                     "name": "dataCollected",
-                    "description": "Contains an bucket of collected trace events. When tracing is stopped collected events will be\nsend as a sequence of dataCollected events followed by tracingComplete event.",
+                    "description": "Contains a bucket of collected trace events. When tracing is stopped collected events will be\nsent as a sequence of dataCollected events followed by tracingComplete event.",
                     "parameters": [
                         {
                             "name": "value",
@@ -22412,6 +22492,36 @@
                         {
                             "name": "enabled",
                             "type": "boolean"
+                        }
+                    ]
+                }
+            ],
+            "events": [
+                {
+                    "name": "credentialAdded",
+                    "description": "Triggered when a credential is added to an authenticator.",
+                    "parameters": [
+                        {
+                            "name": "authenticatorId",
+                            "$ref": "AuthenticatorId"
+                        },
+                        {
+                            "name": "credential",
+                            "$ref": "Credential"
+                        }
+                    ]
+                },
+                {
+                    "name": "credentialAsserted",
+                    "description": "Triggered when a credential is used in a webauthn assertion.",
+                    "parameters": [
+                        {
+                            "name": "authenticatorId",
+                            "$ref": "AuthenticatorId"
+                        },
+                        {
+                            "name": "credential",
+                            "$ref": "Credential"
                         }
                     ]
                 }
