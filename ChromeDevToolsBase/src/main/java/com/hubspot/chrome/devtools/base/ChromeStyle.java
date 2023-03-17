@@ -5,11 +5,15 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import org.immutables.value.Value;
 import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Target({ ElementType.PACKAGE, ElementType.TYPE })
 @Retention(RetentionPolicy.CLASS) // Make it class retention for incremental compilation
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignore unknown properties to handle chrome adding fields to base models
 @JsonSerialize
 @Value.Style(
   get = { "is*", "get*" }, // Detect 'get' and 'is' prefixes in accessor methods
