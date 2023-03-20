@@ -128,12 +128,10 @@ public class ChromeDevToolsClient implements Closeable {
       throw new ChromeDevToolsException("Unable to find available chrome session info.");
     }
 
-    List<ChromeSessionInfo> sessions = response.getAs(new TypeReference<>() {});
-    if (sessions.size() == 0) {
-      throw new ChromeDevToolsException("Unable to create new websocket target");
-    }
+    TargetID targetID = response.getAs(new TypeReference<>() {});
+    LOG.debug("new TargetID: {}", targetID);
 
-    return new TargetID(sessions.get(0).getId());
+    return targetID;
   }
 
   public static class Builder {

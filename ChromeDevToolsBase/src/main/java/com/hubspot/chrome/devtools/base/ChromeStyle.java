@@ -20,8 +20,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
   typeImmutable = "*", // No prefix or suffix for generated immutable type
   optionalAcceptNullable = true, // allow for an Optional<T> to have a setter that takes a null value of T
   visibility = ImplementationVisibility.SAME, // Generated class will have the same visibility as the abstract class/interface)
-  jdkOnly = true, // For Guava 18+, this stops MoreObjects from being used in toString and ImmutableHashMap.Builder from being used for building map fields (among other effects).
-  passAnnotations = { JsonIgnoreProperties.class }
+  jdkOnly = true // For Guava 18+, this stops MoreObjects from being used in toString and ImmutableHashMap.Builder from being used for building map fields (among other effects).
 )
 public @interface ChromeStyle {
 }
