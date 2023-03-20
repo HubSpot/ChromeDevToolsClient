@@ -26,6 +26,7 @@ public class ChromeDevToolsClientDefaults {
   .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   static {
+    DEFAULT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     DEFAULT_OBJECT_MAPPER.setSerializationInclusion(Include.NON_NULL);
     SimpleModule module = new SimpleModule();
     module.addDeserializer(Event.class, new EventDeserializer());

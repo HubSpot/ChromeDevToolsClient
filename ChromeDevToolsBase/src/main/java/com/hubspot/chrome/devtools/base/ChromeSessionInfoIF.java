@@ -3,6 +3,7 @@ package com.hubspot.chrome.devtools.base;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.immutables.value.Value.Immutable;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 @Immutable
@@ -17,5 +18,6 @@ public interface ChromeSessionInfoIF {
   String getUrl();
   String getWebSocketDebuggerUrl();
 
-  Optional<String> getFaviconUrl();
+  @Nullable
+  String getFaviconUrl();
 }
