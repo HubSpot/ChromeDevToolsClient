@@ -22,7 +22,8 @@ public class ChromeDevToolsClientDefaults {
     TimeUnit.SECONDS,
     new LinkedTransferQueue<>()
   );
-  public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper()
+  .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   static {
     DEFAULT_OBJECT_MAPPER.setSerializationInclusion(Include.NON_NULL);
@@ -31,7 +32,9 @@ public class ChromeDevToolsClientDefaults {
     DEFAULT_OBJECT_MAPPER.registerModule(module);
   }
 
-  public static final HttpClient DEFAULT_HTTP_CLIENT = new NingHttpClient(HttpConfig.newBuilder().setObjectMapper(DEFAULT_OBJECT_MAPPER).build());
+  public static final HttpClient DEFAULT_HTTP_CLIENT = new NingHttpClient(
+    HttpConfig.newBuilder().setObjectMapper(DEFAULT_OBJECT_MAPPER).build()
+  );
   public static final int DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS = 60 * 1000;
   public static final int DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS = 5 * 1000;
   public static final boolean DEFAULT_START_NEW_TARGET = false;
