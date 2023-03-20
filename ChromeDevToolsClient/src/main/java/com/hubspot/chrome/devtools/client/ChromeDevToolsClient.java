@@ -128,10 +128,10 @@ public class ChromeDevToolsClient implements Closeable {
       throw new ChromeDevToolsException("Unable to find available chrome session info.");
     }
 
-    TargetID targetID = response.getAs(new TypeReference<>() {});
-    LOG.debug("new TargetID: {}", targetID);
+    ChromeSessionInfo newSession = response.getAs(new TypeReference<>() {});
+    LOG.debug("new session: {}", newSession);
 
-    return targetID;
+    return new TargetID(newSession.getId());
   }
 
   public static class Builder {
