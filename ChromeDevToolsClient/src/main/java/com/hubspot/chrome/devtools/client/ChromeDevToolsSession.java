@@ -96,12 +96,21 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
 
-  public ChromeDevToolsSession(URI uri,
-                               ObjectMapper objectMapper,
-                               ExecutorService executorService,
-                               long actionTimeoutMillis) {
+  public ChromeDevToolsSession(
+    URI uri,
+    ObjectMapper objectMapper,
+    ExecutorService executorService,
+    long actionTimeoutMillis
+  ) {
     this.chromeEventListeners = new ConcurrentHashMap<>();
-    this.websocket = new ChromeWebSocketClient(uri, objectMapper, chromeEventListeners, executorService, actionTimeoutMillis);
+    this.websocket =
+      new ChromeWebSocketClient(
+        uri,
+        objectMapper,
+        chromeEventListeners,
+        executorService,
+        actionTimeoutMillis
+      );
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
@@ -109,14 +118,19 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     try {
       this.websocket.connectBlocking();
     } catch (Throwable t) {
-      throw new ChromeDevToolsException(String.format("Could not connect to uri %s", uri), t);
+      throw new ChromeDevToolsException(
+        String.format("Could not connect to uri %s", uri),
+        t
+      );
     }
   }
 
-  public ChromeDevToolsSession(Map<String, ChromeEventListener> chromeEventListeners,
-                               ChromeWebSocketClient chromeWebSocketClient,
-                               ObjectMapper objectMapper,
-                               ExecutorService executorService) {
+  public ChromeDevToolsSession(
+    Map<String, ChromeEventListener> chromeEventListeners,
+    ChromeWebSocketClient chromeWebSocketClient,
+    ObjectMapper objectMapper,
+    ExecutorService executorService
+  ) {
     this.chromeEventListeners = chromeEventListeners;
     this.websocket = chromeWebSocketClient;
     this.objectMapper = objectMapper;
@@ -138,18 +152,27 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public CompletableFuture<Void> sendAsync(ChromeRequest request) {
-    return CompletableFuture.runAsync(() -> {
-      sendChromeRequest(request);
-      websocket.getResponse(request.getId());
-    }, executorService);
+    return CompletableFuture.runAsync(
+      () -> {
+        sendChromeRequest(request);
+        websocket.getResponse(request.getId());
+      },
+      executorService
+    );
   }
 
   @Override
-  public <T> CompletableFuture<T> sendAsync(ChromeRequest request, TypeReference<T> valueType) {
-    return CompletableFuture.supplyAsync(() -> {
-      sendChromeRequest(request);
-      return parseChromeResponse(websocket.getResponse(request.getId()), valueType);
-    }, executorService);
+  public <T> CompletableFuture<T> sendAsync(
+    ChromeRequest request,
+    TypeReference<T> valueType
+  ) {
+    return CompletableFuture.supplyAsync(
+      () -> {
+        sendChromeRequest(request);
+        return parseChromeResponse(websocket.getResponse(request.getId()), valueType);
+      },
+      executorService
+    );
   }
 
   private void sendChromeRequest(ChromeRequest request) {
@@ -221,14 +244,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public void waitDocumentReady(long timeoutMillis, long periodMillis) {
-    Retryer<Boolean> retryer = RetryerBuilder.<Boolean>newBuilder()
-        .retryIfResult(Predicates.equalTo(false))
-        .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
-        .withWaitStrategy(WaitStrategies.fixedWait(periodMillis, TimeUnit.MILLISECONDS))
-        .build();
+    Retryer<Boolean> retryer = RetryerBuilder
+      .<Boolean>newBuilder()
+      .retryIfResult(Predicates.equalTo(false))
+      .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
+      .withWaitStrategy(WaitStrategies.fixedWait(periodMillis, TimeUnit.MILLISECONDS))
+      .build();
     try {
-      retryer.call(() -> (Boolean) evaluate("document.readyState === \"complete\"").result.getValue());
-    } catch (ExecutionException| RetryException e) {
+      retryer.call(
+        () -> (Boolean) evaluate("document.readyState === \"complete\"").result.getValue()
+      );
+    } catch (ExecutionException | RetryException e) {
       throw new ChromeDevToolsException(e);
     }
   }
@@ -237,16 +263,24 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return waitUntil(predicate, DEFAULT_TIMEOUT_MILLIS);
   }
 
-  public boolean waitUntil(Predicate<ChromeDevToolsSession> predicate, long timeoutMillis) {
+  public boolean waitUntil(
+    Predicate<ChromeDevToolsSession> predicate,
+    long timeoutMillis
+  ) {
     return waitUntil(predicate, timeoutMillis, DEFAULT_PERIOD_MILLIS);
   }
 
-  public boolean waitUntil(Predicate<ChromeDevToolsSession> predicate, long timeoutMillis, long periodMillis) {
-    Retryer<Boolean> retryer = RetryerBuilder.<Boolean>newBuilder()
-        .retryIfResult(Predicates.equalTo(false))
-        .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
-        .withWaitStrategy(WaitStrategies.fixedWait(periodMillis, TimeUnit.MILLISECONDS))
-        .build();
+  public boolean waitUntil(
+    Predicate<ChromeDevToolsSession> predicate,
+    long timeoutMillis,
+    long periodMillis
+  ) {
+    Retryer<Boolean> retryer = RetryerBuilder
+      .<Boolean>newBuilder()
+      .retryIfResult(Predicates.equalTo(false))
+      .withStopStrategy(StopStrategies.stopAfterDelay(timeoutMillis))
+      .withWaitStrategy(WaitStrategies.fixedWait(periodMillis, TimeUnit.MILLISECONDS))
+      .build();
 
     try {
       retryer.call(() -> predicate.test(this));
@@ -265,7 +299,24 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public EvaluateResult evaluate(String javascript) {
-    return getRuntime().evaluate(javascript, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    return getRuntime()
+      .evaluate(
+        javascript,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      );
   }
 
   public FrameId getFrameId() {
@@ -286,14 +337,30 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public byte[] captureScreenshot(FileExtension extension) {
-    String data = getPage().captureScreenshot(extension.name().toLowerCase(), null, null, null, null);
+    String data = getPage()
+      .captureScreenshot(extension.name().toLowerCase(), null, null, null, null);
     return Base64.getDecoder().decode(data);
   }
 
   public byte[] printToPDF() {
-    PrintToPDFResult result = getPage().printToPDF(null, null, null, null,
-        null, null, null, null, null, null,
-        null, null, null, null, null);
+    PrintToPDFResult result = getPage()
+      .printToPDF(
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      );
     return Base64.getDecoder().decode(result.data);
   }
 
@@ -301,7 +368,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return id.toString();
   }
 
-  public void addEventListener(String listenerId, ChromeEventListener chromeEventListener) {
+  public void addEventListener(
+    String listenerId,
+    ChromeEventListener chromeEventListener
+  ) {
     if (chromeEventListener != null && listenerId != null) {
       chromeEventListeners.put(listenerId, chromeEventListener);
     } else {
@@ -327,12 +397,20 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
    */
   public <T> String addEventConsumer(EventType eventType, Consumer<T> eventConsumer) {
-    String listenerId = String.format("ChromeDevToolsSession-%s-%sConsumer-%s", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    String listenerId = String.format(
+      "ChromeDevToolsSession-%s-%sConsumer-%s",
+      id,
+      eventType.getClazz().toString(),
+      chromeEventListeners.size() + 1
+    );
     addEventListener(listenerId, createEventListener(eventType, eventConsumer));
     return listenerId;
   }
 
-  private <T> ChromeEventListener createEventListener(EventType eventType, Consumer<T> eventConsumer) {
+  private <T> ChromeEventListener createEventListener(
+    EventType eventType,
+    Consumer<T> eventConsumer
+  ) {
     return (type, event) -> {
       try {
         if (type == eventType) {
@@ -376,7 +454,12 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
    * @return The id of the listener created. Passing this to `removeEventListener` will remove the listener and stop the capturing of events.
    */
   public <T> String collectEvents(EventType eventType, Collection<T> events) {
-    String listenerId = String.format("ChromeDevToolsSession-%s-%sCollector-%s", id, eventType.getClazz().toString(), chromeEventListeners.size() + 1);
+    String listenerId = String.format(
+      "ChromeDevToolsSession-%s-%sCollector-%s",
+      id,
+      eventType.getClazz().toString(),
+      chromeEventListeners.size() + 1
+    );
     addEventListener(listenerId, createEventListener(eventType, events::add));
     return listenerId;
   }
@@ -391,12 +474,19 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public Object getValueFromObjectId(RemoteObjectId remoteObjectId, String property) {
-    CallFunctionOnResult callfunction = getRuntime().callFunctionOn(
+    CallFunctionOnResult callfunction = getRuntime()
+      .callFunctionOn(
         "function(property) { return property.split('.').reduce((o, i) => o[i], this); }",
         remoteObjectId,
         Collections.singletonList(CallArgument.builder().setValue(property).build()),
-        false, true, false, false, null, null, null
-    );
+        false,
+        true,
+        false,
+        false,
+        null,
+        null,
+        null
+      );
     if (callfunction == null || callfunction.result == null) {
       return null;
     }
@@ -436,15 +526,51 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
       return false;
     }
     Quad content = boxModel.getContent();
-    if (content == null || content.getValue().isEmpty() || content.getValue().size() < 2) {
+    if (
+      content == null || content.getValue().isEmpty() || content.getValue().size() < 2
+    ) {
       return false;
     }
     double left = Math.floor(content.getValue().get(0).doubleValue());
-    double top  = Math.floor(content.getValue().get(1).doubleValue());
+    double top = Math.floor(content.getValue().get(1).doubleValue());
     int clickCount = 1;
     Input input = getInput();
-    input.dispatchMouseEvent("mousePressed", left, top, null, null, MouseButton.LEFT, null, clickCount, null, null, null, null, null, null, null, null);
-    input.dispatchMouseEvent("mouseReleased", left, top, null, null, MouseButton.LEFT, null, clickCount, null, null, null, null, null, null, null, null);
+    input.dispatchMouseEvent(
+      "mousePressed",
+      left,
+      top,
+      null,
+      null,
+      MouseButton.LEFT,
+      null,
+      clickCount,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    );
+    input.dispatchMouseEvent(
+      "mouseReleased",
+      left,
+      top,
+      null,
+      null,
+      MouseButton.LEFT,
+      null,
+      clickCount,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    );
     return true;
   }
 
@@ -472,40 +598,147 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   // Note: I've left out two deprecated classes. This could make it harder for users
   // to transition, but if they're transitioning to this anyways, they may as well.
-  public Accessibility getAccessibility() { return new Accessibility(this, objectMapper); }
-  public Animation getAnimation() { return new Animation(this, objectMapper); }
-  public Audits getAudits() { return new Audits(this, objectMapper); }
-  public Browser getBrowser() { return new Browser(this, objectMapper); }
-  public CacheStorage getCacheStorage() { return new CacheStorage(this, objectMapper); }
-  public CSS getCSS() { return new CSS(this, objectMapper); }
-  public Database getDatabase() { return new Database(this, objectMapper); }
-  public Debugger getDebugger() { return new Debugger(this, objectMapper); }
-  public DeviceOrientation getDeviceOrientation() { return new DeviceOrientation(this, objectMapper); }
-  public DOM getDOM() { return new DOM(this, objectMapper); }
-  public DOMDebugger getDOMDebugger() { return new DOMDebugger(this, objectMapper); }
-  public DOMSnapshot getDOMSnapshot() { return new DOMSnapshot(this, objectMapper); }
-  public DOMStorage getDOMStorage() { return new DOMStorage(this, objectMapper); }
-  public Emulation getEmulation() { return new Emulation(this, objectMapper); }
-  public HeadlessExperimental getHeadlessExperimental() { return new HeadlessExperimental(this, objectMapper); }
-  public HeapProfiler getHeapProfiler() { return new HeapProfiler(this, objectMapper); }
-  public IndexedDB getIndexedDB() { return new IndexedDB(this, objectMapper); }
-  public Input getInput() { return new Input(this, objectMapper); }
-  public Inspector getInspector() { return new Inspector(this, objectMapper); }
-  public IO getIO() { return new IO(this, objectMapper); }
-  public LayerTree getLayerTree() { return new LayerTree(this, objectMapper); }
-  public Log getLog() { return new Log(this, objectMapper); }
-  public Memory getMemory() { return new Memory(this, objectMapper); }
-  public Network getNetwork() { return new Network(this, objectMapper); }
-  public Overlay getOverlay() { return new Overlay(this, objectMapper); }
-  public Page getPage() { return new Page(this, objectMapper); }
-  public Performance getPerformance() { return new Performance(this, objectMapper); }
-  public Profiler getProfiler() { return new Profiler(this, objectMapper); }
-  public Runtime getRuntime() { return new Runtime(this, objectMapper); }
-  public Security getSecurity() { return new Security(this, objectMapper); }
-  public ServiceWorker getServiceWorker() { return new ServiceWorker(this, objectMapper); }
-  public Storage getStorage() { return new Storage(this, objectMapper); }
-  public SystemInfo getSystemInfo() { return new SystemInfo(this, objectMapper); }
-  public Target getTarget() { return new Target(this, objectMapper); }
-  public Tethering getTethering() { return new Tethering(this, objectMapper); }
-  public Tracing getTracing() { return new Tracing(this, objectMapper); }
+  public Accessibility getAccessibility() {
+    return new Accessibility(this, objectMapper);
+  }
+
+  public Animation getAnimation() {
+    return new Animation(this, objectMapper);
+  }
+
+  public Audits getAudits() {
+    return new Audits(this, objectMapper);
+  }
+
+  public Browser getBrowser() {
+    return new Browser(this, objectMapper);
+  }
+
+  public CacheStorage getCacheStorage() {
+    return new CacheStorage(this, objectMapper);
+  }
+
+  public CSS getCSS() {
+    return new CSS(this, objectMapper);
+  }
+
+  public Database getDatabase() {
+    return new Database(this, objectMapper);
+  }
+
+  public Debugger getDebugger() {
+    return new Debugger(this, objectMapper);
+  }
+
+  public DeviceOrientation getDeviceOrientation() {
+    return new DeviceOrientation(this, objectMapper);
+  }
+
+  public DOM getDOM() {
+    return new DOM(this, objectMapper);
+  }
+
+  public DOMDebugger getDOMDebugger() {
+    return new DOMDebugger(this, objectMapper);
+  }
+
+  public DOMSnapshot getDOMSnapshot() {
+    return new DOMSnapshot(this, objectMapper);
+  }
+
+  public DOMStorage getDOMStorage() {
+    return new DOMStorage(this, objectMapper);
+  }
+
+  public Emulation getEmulation() {
+    return new Emulation(this, objectMapper);
+  }
+
+  public HeadlessExperimental getHeadlessExperimental() {
+    return new HeadlessExperimental(this, objectMapper);
+  }
+
+  public HeapProfiler getHeapProfiler() {
+    return new HeapProfiler(this, objectMapper);
+  }
+
+  public IndexedDB getIndexedDB() {
+    return new IndexedDB(this, objectMapper);
+  }
+
+  public Input getInput() {
+    return new Input(this, objectMapper);
+  }
+
+  public Inspector getInspector() {
+    return new Inspector(this, objectMapper);
+  }
+
+  public IO getIO() {
+    return new IO(this, objectMapper);
+  }
+
+  public LayerTree getLayerTree() {
+    return new LayerTree(this, objectMapper);
+  }
+
+  public Log getLog() {
+    return new Log(this, objectMapper);
+  }
+
+  public Memory getMemory() {
+    return new Memory(this, objectMapper);
+  }
+
+  public Network getNetwork() {
+    return new Network(this, objectMapper);
+  }
+
+  public Overlay getOverlay() {
+    return new Overlay(this, objectMapper);
+  }
+
+  public Page getPage() {
+    return new Page(this, objectMapper);
+  }
+
+  public Performance getPerformance() {
+    return new Performance(this, objectMapper);
+  }
+
+  public Profiler getProfiler() {
+    return new Profiler(this, objectMapper);
+  }
+
+  public Runtime getRuntime() {
+    return new Runtime(this, objectMapper);
+  }
+
+  public Security getSecurity() {
+    return new Security(this, objectMapper);
+  }
+
+  public ServiceWorker getServiceWorker() {
+    return new ServiceWorker(this, objectMapper);
+  }
+
+  public Storage getStorage() {
+    return new Storage(this, objectMapper);
+  }
+
+  public SystemInfo getSystemInfo() {
+    return new SystemInfo(this, objectMapper);
+  }
+
+  public Target getTarget() {
+    return new Target(this, objectMapper);
+  }
+
+  public Tethering getTethering() {
+    return new Tethering(this, objectMapper);
+  }
+
+  public Tracing getTracing() {
+    return new Tracing(this, objectMapper);
+  }
 }

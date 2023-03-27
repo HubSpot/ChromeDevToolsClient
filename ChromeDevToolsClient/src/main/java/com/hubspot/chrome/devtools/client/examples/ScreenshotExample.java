@@ -20,10 +20,13 @@ public class ScreenshotExample {
     // Connect to Chrome and get a session
     try (ChromeDevToolsSession session = client.connect("127.0.0.1", 9292)) {
       // Add an event listener
-      session.addEventListener("listenerId", (t, e) -> {
-        System.out.println("Event Type Is: " + t.toString());
-        System.out.println("Event Class Is: " + e.getClass().getName());
-      });
+      session.addEventListener(
+        "listenerId",
+        (t, e) -> {
+          System.out.println("Event Type Is: " + t.toString());
+          System.out.println("Event Class Is: " + e.getClass().getName());
+        }
+      );
 
       // Navigate to the specified url
       session.navigate(url);
@@ -32,7 +35,9 @@ public class ScreenshotExample {
       session.waitDocumentReady(5000);
 
       // Locate the element on the page
-      BoxModel boxModel = session.getDOM().getBoxModel(session.getNodeId(cssSelector), null, null);
+      BoxModel boxModel = session
+        .getDOM()
+        .getBoxModel(session.getNodeId(cssSelector), null, null);
       int width = boxModel.getWidth();
       int height = boxModel.getHeight(); // includes shadows
 
@@ -40,16 +45,19 @@ public class ScreenshotExample {
       List<Number> contentLocation = boxModel.getContent().getValue();
 
       // Find the section of the page we want to capture in our screenshot
-      Viewport clip = Viewport.builder()
-          .setX(contentLocation.get(0))
-          .setY(contentLocation.get(1))
-          .setWidth(((double) width))
-          .setHeight(((double) height))
-          .setScale(1.0)
-          .build();
+      Viewport clip = Viewport
+        .builder()
+        .setX(contentLocation.get(0))
+        .setY(contentLocation.get(1))
+        .setWidth(((double) width))
+        .setHeight(((double) height))
+        .setScale(1.0)
+        .build();
 
       // Get the screenshot data as a base 64 encoded string
-      String base64Data = session.getPage().captureScreenshot("png", null, clip, null, null);
+      String base64Data = session
+        .getPage()
+        .captureScreenshot("png", null, clip, null, null);
       byte[] data = Base64.getDecoder().decode(base64Data);
 
       // Alternatively use the client shortcut to capture either a PNG or PDF screenshot

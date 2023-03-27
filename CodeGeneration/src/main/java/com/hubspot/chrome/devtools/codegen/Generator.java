@@ -1,20 +1,5 @@
 package com.hubspot.chrome.devtools.codegen;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import javax.lang.model.element.Modifier;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -41,9 +26,23 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import javax.lang.model.element.Modifier;
 
 public class Generator {
-  private static final String GENERATED_CODE_PACKAGE_NAME = "com.hubspot.chrome.devtools.client.core";
+  private static final String GENERATED_CODE_PACKAGE_NAME =
+    "com.hubspot.chrome.devtools.client.core";
 
   private static final ObjectMapper OBJECT_MAPPER = newObjectMapper();
 
@@ -100,51 +99,73 @@ public class Generator {
   }
 
   private void generateEventBase(Path packageRoot) {
-    TypeSpec event = TypeSpec.classBuilder("Event")
-        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-        .build();
+    TypeSpec event = TypeSpec
+      .classBuilder("Event")
+      .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+      .build();
 
     writeJavaFile(packageRoot, GENERATED_CODE_PACKAGE_NAME, event);
   }
 
-  private void generateEventTypeEnum(Map<Domain, List<TypeSpec>> pojos, Path packageRoot) {
-    TypeSpec.Builder builder = TypeSpec.enumBuilder("EventType")
-        .addModifiers(Modifier.PUBLIC)
-        .addField(String.class, "type", Modifier.PRIVATE, Modifier.FINAL)
-        .addField(Class.class, "clazz", Modifier.PRIVATE, Modifier.FINAL)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addParameter(String.class, "type")
-            .addParameter(Class.class, "clazz")
-            .addStatement("this.$1N= $1N", "type")
-            .addStatement("this.$1N= $1N", "clazz")
-            .build())
-        .addMethod(MethodSpec.methodBuilder("getType")
-            .addAnnotation(JsonValue.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", "type")
-            .returns(String.class)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("getClazz")
-            .addAnnotation(JsonValue.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", "clazz")
-            .returns(Class.class)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("toString")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", "type")
-            .returns(String.class)
-            .build());
+  private void generateEventTypeEnum(
+    Map<Domain, List<TypeSpec>> pojos,
+    Path packageRoot
+  ) {
+    TypeSpec.Builder builder = TypeSpec
+      .enumBuilder("EventType")
+      .addModifiers(Modifier.PUBLIC)
+      .addField(String.class, "type", Modifier.PRIVATE, Modifier.FINAL)
+      .addField(Class.class, "clazz", Modifier.PRIVATE, Modifier.FINAL)
+      .addMethod(
+        MethodSpec
+          .constructorBuilder()
+          .addParameter(String.class, "type")
+          .addParameter(Class.class, "clazz")
+          .addStatement("this.$1N= $1N", "type")
+          .addStatement("this.$1N= $1N", "clazz")
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("getType")
+          .addAnnotation(JsonValue.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", "type")
+          .returns(String.class)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("getClazz")
+          .addAnnotation(JsonValue.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", "clazz")
+          .returns(Class.class)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("toString")
+          .addAnnotation(Override.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", "type")
+          .returns(String.class)
+          .build()
+      );
     for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
       Domain domain = entry.getKey();
       for (TypeSpec typeSpec : entry.getValue()) {
         String eventName = replaceAtEnd(typeSpec.name, "Event", "");
         builder.addEnumConstant(
-            formatEnumName(String.format("%s_%s", domain.getName(), eventName)),
-            TypeSpec.anonymousClassBuilder("$S, $T.class",
-                domain.getName() + "." + uncapitalize(eventName),
-                getTypeName(typeSpec.name, getPackageName(domain))).build());
+          formatEnumName(String.format("%s_%s", domain.getName(), eventName)),
+          TypeSpec
+            .anonymousClassBuilder(
+              "$S, $T.class",
+              domain.getName() + "." + uncapitalize(eventName),
+              getTypeName(typeSpec.name, getPackageName(domain))
+            )
+            .build()
+        );
       }
     }
     writeJavaFile(packageRoot, GENERATED_CODE_PACKAGE_NAME, builder.build());
@@ -157,47 +178,73 @@ public class Generator {
     return s;
   }
 
-  private void generateEventDeserializer(Map<Domain, List<TypeSpec>> pojos, Path packageRoot) {
+  private void generateEventDeserializer(
+    Map<Domain, List<TypeSpec>> pojos,
+    Path packageRoot
+  ) {
     TypeName abstractEvent = getTypeName("Event", GENERATED_CODE_PACKAGE_NAME);
-    TypeName superClass = ParameterizedTypeName.get(ClassName.get(StdDeserializer.class), abstractEvent);
+    TypeName superClass = ParameterizedTypeName.get(
+      ClassName.get(StdDeserializer.class),
+      abstractEvent
+    );
 
-    TypeSpec.Builder builder = TypeSpec.classBuilder("EventDeserializer")
-        .superclass(superClass)
-        .addField(ObjectMapper.class, "objectMapper", Modifier.PRIVATE, Modifier.FINAL)
-        .addModifiers(Modifier.PUBLIC)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("super($T.class)", abstractEvent)
-            .addStatement("this.objectMapper = new ObjectMapper()")
-            .addStatement("this.objectMapper.configure($T.$N, false);", DeserializationFeature.class, "FAIL_ON_UNKNOWN_PROPERTIES")
-            .build());
+    TypeSpec.Builder builder = TypeSpec
+      .classBuilder("EventDeserializer")
+      .superclass(superClass)
+      .addField(ObjectMapper.class, "objectMapper", Modifier.PRIVATE, Modifier.FINAL)
+      .addModifiers(Modifier.PUBLIC)
+      .addMethod(
+        MethodSpec
+          .constructorBuilder()
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("super($T.class)", abstractEvent)
+          .addStatement("this.objectMapper = new ObjectMapper()")
+          .addStatement(
+            "this.objectMapper.configure($T.$N, false);",
+            DeserializationFeature.class,
+            "FAIL_ON_UNKNOWN_PROPERTIES"
+          )
+          .build()
+      );
 
-    MethodSpec.Builder deserializationBuilder = MethodSpec.methodBuilder("deserialize")
-        .addAnnotation(Override.class)
-        .addModifiers(Modifier.PUBLIC)
-        .returns(abstractEvent)
-        .addParameter(JsonParser.class, "p")
-        .addParameter(DeserializationContext.class, "context")
-        .addException(IOException.class)
-        .addException(JsonProcessingException.class)
-        .addStatement("$T node = p.readValueAsTree()", JsonNode.class)
-        .addStatement("$T field = node.findValue(\"method\")", JsonNode.class)
-        .addStatement("String method = field.asText()")
-        .beginControlFlow("switch (method)");
+    MethodSpec.Builder deserializationBuilder = MethodSpec
+      .methodBuilder("deserialize")
+      .addAnnotation(Override.class)
+      .addModifiers(Modifier.PUBLIC)
+      .returns(abstractEvent)
+      .addParameter(JsonParser.class, "p")
+      .addParameter(DeserializationContext.class, "context")
+      .addException(IOException.class)
+      .addException(JsonProcessingException.class)
+      .addStatement("$T node = p.readValueAsTree()", JsonNode.class)
+      .addStatement("$T field = node.findValue(\"method\")", JsonNode.class)
+      .addStatement("String method = field.asText()")
+      .beginControlFlow("switch (method)");
 
     for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
       Domain domain = entry.getKey();
       for (TypeSpec typeSpec : entry.getValue()) {
         deserializationBuilder
-            .addCode("case $S: ", domain.getName() + "." + uncapitalize(replaceAtEnd(typeSpec.name, "Event", "")))
-            .addCode("{\n$>")
-            .addStatement("return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)", getTypeName(typeSpec.name, getPackageName(domain)))
-            .addCode("$<}\n");
+          .addCode(
+            "case $S: ",
+            domain.getName() +
+            "." +
+            uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
+          )
+          .addCode("{\n$>")
+          .addStatement(
+            "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
+            getTypeName(typeSpec.name, getPackageName(domain))
+          )
+          .addCode("$<}\n");
       }
     }
 
     deserializationBuilder.endControlFlow();
-    deserializationBuilder.addStatement("throw new $T(\"Unable to deserialize \" + node.toString())", IOException.class);
+    deserializationBuilder.addStatement(
+      "throw new $T(\"Unable to deserialize \" + node.toString())",
+      IOException.class
+    );
 
     builder.addMethod(deserializationBuilder.build());
 
@@ -244,33 +291,44 @@ public class Generator {
   }
 
   private TypeSpec generateEventPOJO(Command event, String packageName) {
-    TypeSpec.Builder builder = TypeSpec.classBuilder(getEventClassName(event))
-        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-        .superclass(getTypeName("Event", GENERATED_CODE_PACKAGE_NAME));
+    TypeSpec.Builder builder = TypeSpec
+      .classBuilder(getEventClassName(event))
+      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+      .superclass(getTypeName("Event", GENERATED_CODE_PACKAGE_NAME));
 
-    MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
-        .addAnnotation(JsonCreator.class)
-        .addModifiers(Modifier.PUBLIC);
+    MethodSpec.Builder ctorBuilder = MethodSpec
+      .constructorBuilder()
+      .addAnnotation(JsonCreator.class)
+      .addModifiers(Modifier.PUBLIC);
 
     for (Property parameter : event.getParameters().orElse(Collections.emptyList())) {
       String name = parameter.getName();
 
       TypeName fieldType = getTypeName(parameter, packageName);
       builder
-          .addField(fieldType, parameter.getName(), Modifier.PRIVATE)
-          .addMethod(MethodSpec.methodBuilder("get" + capitalize(name))
-          .addModifiers(Modifier.PUBLIC)
-          .addStatement("return $N", name)
-          .returns(fieldType)
-          .build());
+        .addField(fieldType, parameter.getName(), Modifier.PRIVATE)
+        .addMethod(
+          MethodSpec
+            .methodBuilder("get" + capitalize(name))
+            .addModifiers(Modifier.PUBLIC)
+            .addStatement("return $N", name)
+            .returns(fieldType)
+            .build()
+        );
 
       ctorBuilder
-          .addParameter(ParameterSpec.builder(fieldType, name)
-              .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
-                  .addMember("value", "$S", name)
-                  .build())
-              .build())
-          .addStatement("this.$1N = $1N", name);
+        .addParameter(
+          ParameterSpec
+            .builder(fieldType, name)
+            .addAnnotation(
+              AnnotationSpec
+                .builder(JsonProperty.class)
+                .addMember("value", "$S", name)
+                .build()
+            )
+            .build()
+        )
+        .addStatement("this.$1N = $1N", name);
     }
 
     builder.addMethod(ctorBuilder.build());
@@ -285,30 +343,41 @@ public class Generator {
   private TypeSpec.Builder generateEnumType(Type type) {
     String valueName = "value";
     Class<String> valueType = String.class;
-    TypeSpec.Builder builder = TypeSpec.enumBuilder(type.getName())
-        .addModifiers(Modifier.PUBLIC)
-        .addField(valueType, valueName, Modifier.PRIVATE, Modifier.FINAL)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addParameter(valueType, valueName)
-            .addStatement("this.$1N= $1N", valueName)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("getValue")
-            .addAnnotation(JsonValue.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", valueName)
-            .returns(valueType)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("toString")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", valueName)
-            .returns(valueType)
-            .build());
+    TypeSpec.Builder builder = TypeSpec
+      .enumBuilder(type.getName())
+      .addModifiers(Modifier.PUBLIC)
+      .addField(valueType, valueName, Modifier.PRIVATE, Modifier.FINAL)
+      .addMethod(
+        MethodSpec
+          .constructorBuilder()
+          .addParameter(valueType, valueName)
+          .addStatement("this.$1N= $1N", valueName)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("getValue")
+          .addAnnotation(JsonValue.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", valueName)
+          .returns(valueType)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("toString")
+          .addAnnotation(Override.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", valueName)
+          .returns(valueType)
+          .build()
+      );
 
     for (String e : type.getEnum().get()) {
       builder.addEnumConstant(
-          formatEnumName(e),
-          TypeSpec.anonymousClassBuilder("$S", e).build());
+        formatEnumName(e),
+        TypeSpec.anonymousClassBuilder("$S", e).build()
+      );
     }
 
     return builder;
@@ -316,22 +385,23 @@ public class Generator {
 
   private String formatEnumName(String e) {
     return e
-        .replace("-", "_")
-        .replaceAll("(\\p{Lower})(\\p{Upper})", "$1_$2")
-        .toUpperCase();
+      .replace("-", "_")
+      .replaceAll("(\\p{Lower})(\\p{Upper})", "$1_$2")
+      .toUpperCase();
   }
 
   private TypeSpec.Builder generateObjectType(Type type, String packageName) {
-    TypeSpec.Builder outerBuilder = TypeSpec.classBuilder(type.getName())
-        .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
-    MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
-        .addAnnotation(JsonCreator.class)
-        .addModifiers(Modifier.PUBLIC);
-    TypeSpec.Builder innerBuilder = TypeSpec.classBuilder("Builder")
-        .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addModifiers(Modifier.PRIVATE)
-            .build());
+    TypeSpec.Builder outerBuilder = TypeSpec
+      .classBuilder(type.getName())
+      .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+    MethodSpec.Builder ctorBuilder = MethodSpec
+      .constructorBuilder()
+      .addAnnotation(JsonCreator.class)
+      .addModifiers(Modifier.PUBLIC);
+    TypeSpec.Builder innerBuilder = TypeSpec
+      .classBuilder("Builder")
+      .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+      .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build());
     List<String> ctorParams = new ArrayList<>();
 
     ClassName builderType = ClassName.get(packageName, type.getName() + ".Builder");
@@ -343,81 +413,115 @@ public class Generator {
       }
       TypeName fieldType = getTypeName(property, packageName);
       outerBuilder
-          .addField(fieldType, name, Modifier.PRIVATE)
-          .addMethod(MethodSpec.methodBuilder("get" + capitalize(name))
-              .addModifiers(Modifier.PUBLIC)
-              .addStatement("return $N", name)
-              .returns(fieldType)
-              .build());
+        .addField(fieldType, name, Modifier.PRIVATE)
+        .addMethod(
+          MethodSpec
+            .methodBuilder("get" + capitalize(name))
+            .addModifiers(Modifier.PUBLIC)
+            .addStatement("return $N", name)
+            .returns(fieldType)
+            .build()
+        );
 
       ctorBuilder
-          .addParameter(ParameterSpec.builder(fieldType, name)
-              .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
-                  .addMember("value", "$S", name)
-                  .build())
-              .build())
-          .addStatement("this.$1N = $1N", name);
+        .addParameter(
+          ParameterSpec
+            .builder(fieldType, name)
+            .addAnnotation(
+              AnnotationSpec
+                .builder(JsonProperty.class)
+                .addMember("value", "$S", name)
+                .build()
+            )
+            .build()
+        )
+        .addStatement("this.$1N = $1N", name);
       ctorParams.add(name);
 
       innerBuilder
-          .addField(fieldType, name, Modifier.PRIVATE)
-          .addMethod(MethodSpec.methodBuilder("set" + capitalize(name))
-              .addModifiers(Modifier.PUBLIC)
-              .addParameter(fieldType, name)
-              .addStatement("this.$1N = $1N", name)
-              .addStatement("return this")
-              .returns(builderType)
-              .build());
+        .addField(fieldType, name, Modifier.PRIVATE)
+        .addMethod(
+          MethodSpec
+            .methodBuilder("set" + capitalize(name))
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(fieldType, name)
+            .addStatement("this.$1N = $1N", name)
+            .addStatement("return this")
+            .returns(builderType)
+            .build()
+        );
     }
 
     ClassName outerType = ClassName.get(packageName, type.getName());
-    innerBuilder.addMethod(MethodSpec.methodBuilder("build")
+    innerBuilder.addMethod(
+      MethodSpec
+        .methodBuilder("build")
         .addModifiers(Modifier.PUBLIC)
-        .addStatement(String.format("return new $T(%s)", String.join(", ", ctorParams)), outerType)
+        .addStatement(
+          String.format("return new $T(%s)", String.join(", ", ctorParams)),
+          outerType
+        )
         .returns(outerType)
-        .build());
+        .build()
+    );
 
     outerBuilder
-        .addMethod(ctorBuilder.build())
-        .addType(innerBuilder.build())
-        .addMethod(MethodSpec.methodBuilder("builder")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addStatement("return new $T()", builderType)
-            .returns(builderType)
-            .build());
+      .addMethod(ctorBuilder.build())
+      .addType(innerBuilder.build())
+      .addMethod(
+        MethodSpec
+          .methodBuilder("builder")
+          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+          .addStatement("return new $T()", builderType)
+          .returns(builderType)
+          .build()
+      );
 
     return outerBuilder;
   }
 
   private TypeSpec.Builder generatePODType(Type type, String packageName) {
-    TypeName valueType = getJavaLangTypeName(type.getType(), type.getItems(), packageName);
+    TypeName valueType = getJavaLangTypeName(
+      type.getType(),
+      type.getItems(),
+      packageName
+    );
     String valueName = "value";
-    String toStringStatement =
-        type.getType().equals("string")
-            ? "return " + valueName
-            : "return getValue().toString()";
+    String toStringStatement = type.getType().equals("string")
+      ? "return " + valueName
+      : "return getValue().toString()";
 
-    return TypeSpec.classBuilder(type.getName())
-        .addModifiers(Modifier.PUBLIC)
-        .addField(valueType, valueName, Modifier.PRIVATE)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addAnnotation(JsonCreator.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addParameter(valueType, valueName)
-            .addStatement("this.$1N = $1N", valueName)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("getValue")
-            .addAnnotation(JsonValue.class)
-            .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", valueName)
-            .returns(valueType)
-            .build())
-        .addMethod(MethodSpec.methodBuilder("toString")
+    return TypeSpec
+      .classBuilder(type.getName())
+      .addModifiers(Modifier.PUBLIC)
+      .addField(valueType, valueName, Modifier.PRIVATE)
+      .addMethod(
+        MethodSpec
+          .constructorBuilder()
+          .addAnnotation(JsonCreator.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addParameter(valueType, valueName)
+          .addStatement("this.$1N = $1N", valueName)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("getValue")
+          .addAnnotation(JsonValue.class)
+          .addModifiers(Modifier.PUBLIC)
+          .addStatement("return $N", valueName)
+          .returns(valueType)
+          .build()
+      )
+      .addMethod(
+        MethodSpec
+          .methodBuilder("toString")
           .addAnnotation(Override.class)
           .addModifiers(Modifier.PUBLIC)
           .addStatement(toStringStatement)
           .returns(String.class)
-          .build());
+          .build()
+      );
   }
 
   private void generateCommandsForDomain(Domain domain, Path packageRoot) {
@@ -438,38 +542,79 @@ public class Generator {
     Class<ChromeSessionCore> chromeSessionType = ChromeSessionCore.class;
     Class<ObjectMapper> objectMapperType = ObjectMapper.class;
 
-    TypeSpec.Builder builder = TypeSpec.classBuilder(domain.getName())
-        .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-        .addField(chromeSessionType, chromeSessionVar)
-        .addField(objectMapperType, objectMapperVar)
-        .addMethod(MethodSpec.constructorBuilder()
-            .addModifiers(Modifier.PUBLIC)
-            .addParameter(chromeSessionType, chromeSessionVar)
-            .addParameter(objectMapperType, objectMapperVar)
-            .addStatement("this.$1N = $1N", chromeSessionVar)
-            .addStatement("this.$1N = $1N", objectMapperVar)
-            .build());
+    TypeSpec.Builder builder = TypeSpec
+      .classBuilder(domain.getName())
+      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+      .addField(chromeSessionType, chromeSessionVar)
+      .addField(objectMapperType, objectMapperVar)
+      .addMethod(
+        MethodSpec
+          .constructorBuilder()
+          .addModifiers(Modifier.PUBLIC)
+          .addParameter(chromeSessionType, chromeSessionVar)
+          .addParameter(objectMapperType, objectMapperVar)
+          .addStatement("this.$1N = $1N", chromeSessionVar)
+          .addStatement("this.$1N = $1N", objectMapperVar)
+          .build()
+      );
 
     for (Command command : domain.getCommands()) {
-      Optional<TypeSpec> returnTypeSpec = maybeBuildContainerForMultipleReturns(command, domain);
+      Optional<TypeSpec> returnTypeSpec = maybeBuildContainerForMultipleReturns(
+        command,
+        domain
+      );
       if (returnTypeSpec.isPresent()) {
         specs.add(returnTypeSpec.get());
       }
 
       // Generate full method call with all args
-      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, 0));
-      builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, 0));
+      builder.addMethod(
+        generateMethodSpec(
+          command,
+          domain,
+          Optional.of(domain.getName() + "." + getResultClassName(command)),
+          false,
+          0
+        )
+      );
+      builder.addMethod(
+        generateMethodSpec(
+          command,
+          domain,
+          Optional.of(domain.getName() + "." + getResultClassName(command)),
+          true,
+          0
+        )
+      );
 
       // If some args are optional, generate method with optional args omitted
-      List<Property> commandArgs = command.getParameters().orElse(Collections.emptyList());
+      List<Property> commandArgs = command
+        .getParameters()
+        .orElse(Collections.emptyList());
       if (!commandArgs.isEmpty()) {
         int lastIndex = commandArgs.size() - 1;
         int omitted = 0;
 
         while (lastIndex >= 0 && commandArgs.get(lastIndex).getOptional().orElse(false)) {
           omitted++;
-          builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), false, omitted));
-          builder.addMethod(generateMethodSpec(command, domain, Optional.of(domain.getName() + "." + getResultClassName(command)), true, omitted));
+          builder.addMethod(
+            generateMethodSpec(
+              command,
+              domain,
+              Optional.of(domain.getName() + "." + getResultClassName(command)),
+              false,
+              omitted
+            )
+          );
+          builder.addMethod(
+            generateMethodSpec(
+              command,
+              domain,
+              Optional.of(domain.getName() + "." + getResultClassName(command)),
+              true,
+              omitted
+            )
+          );
           lastIndex--;
         }
       }
@@ -486,7 +631,10 @@ public class Generator {
     return specs;
   }
 
-  private Optional<TypeSpec> maybeBuildContainerForMultipleReturns(Command command, Domain domain) {
+  private Optional<TypeSpec> maybeBuildContainerForMultipleReturns(
+    Command command,
+    Domain domain
+  ) {
     // Sometimes chrome will return multiple objects. This creates classes that will
     // encapsulate those types into a single class.
     List<Property> returnValues = command.getReturns().orElse(Collections.emptyList());
@@ -496,14 +644,20 @@ public class Generator {
     return Optional.empty();
   }
 
-  private TypeSpec buildContainerForMultipleReturns(Command command, Domain domain, List<Property> returnValues) {
+  private TypeSpec buildContainerForMultipleReturns(
+    Command command,
+    Domain domain,
+    List<Property> returnValues
+  ) {
     String packageName = getPackageName(domain);
 
-    TypeSpec.Builder builder = TypeSpec.classBuilder(getResultClassName(command))
-        .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+    TypeSpec.Builder builder = TypeSpec
+      .classBuilder(getResultClassName(command))
+      .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
-    MethodSpec.Builder ctorBuilder = MethodSpec.constructorBuilder()
-        .addAnnotation(JsonCreator.class);
+    MethodSpec.Builder ctorBuilder = MethodSpec
+      .constructorBuilder()
+      .addAnnotation(JsonCreator.class);
 
     for (Property property : returnValues) {
       String name = property.getName();
@@ -511,22 +665,24 @@ public class Generator {
 
       builder.addField(type, name, Modifier.PUBLIC);
 
-      AnnotationSpec.Builder jsonPropertyBuilder = AnnotationSpec.builder(JsonProperty.class)
-          .addMember("value", "$S",name);
+      AnnotationSpec.Builder jsonPropertyBuilder = AnnotationSpec
+        .builder(JsonProperty.class)
+        .addMember("value", "$S", name);
       if (!property.getOptional().orElse(false)) {
         jsonPropertyBuilder.addMember("required", "$L", true);
       }
 
       ctorBuilder
-          .addParameter(ParameterSpec.builder(type, name)
-              .addAnnotation(jsonPropertyBuilder.build())
-              .build())
-          .addStatement("this.$1N = $1N", name);
+        .addParameter(
+          ParameterSpec
+            .builder(type, name)
+            .addAnnotation(jsonPropertyBuilder.build())
+            .build()
+        )
+        .addStatement("this.$1N = $1N", name);
     }
 
-    return builder
-        .addMethod(ctorBuilder.build())
-        .build();
+    return builder.addMethod(ctorBuilder.build()).build();
   }
 
   private String getResultClassName(Command command) {
@@ -537,16 +693,27 @@ public class Generator {
     return capitalize(event.getName()) + "Event";
   }
 
-  private MethodSpec generateMethodSpec(Command command, Domain domain, Optional<String> returnTypeName, boolean async, int omitCount) {
+  private MethodSpec generateMethodSpec(
+    Command command,
+    Domain domain,
+    Optional<String> returnTypeName,
+    boolean async,
+    int omitCount
+  ) {
     String methodName = command.getName();
     String sendCommand = "chromeSession.send";
     if (async) {
       methodName += "Async";
       sendCommand += "Async";
     }
-    Builder methodBuilder = MethodSpec.methodBuilder(methodName)
-        .addModifiers(Modifier.PUBLIC)
-        .addStatement("$1T chromeRequest = new $1T($2S)", ChromeRequest.class, domain.getName() + "." + command.getName());
+    Builder methodBuilder = MethodSpec
+      .methodBuilder(methodName)
+      .addModifiers(Modifier.PUBLIC)
+      .addStatement(
+        "$1T chromeRequest = new $1T($2S)",
+        ChromeRequest.class,
+        domain.getName() + "." + command.getName()
+      );
 
     boolean hasParams = false;
     List<String> parameterDescriptions = new ArrayList<>();
@@ -561,7 +728,10 @@ public class Generator {
     } else {
       for (Property property : command.getParameters().orElse(Collections.emptyList())) {
         hasParams = true;
-        methodBuilder.addParameter(getTypeName(property, packageName), property.getName());
+        methodBuilder.addParameter(
+          getTypeName(property, packageName),
+          property.getName()
+        );
         if (property.getDescription().isPresent()) {
           parameterDescriptions.add(formatParamForJavadoc(property));
         }
@@ -580,19 +750,29 @@ public class Generator {
     if (returnValues.size() == 0) {
       methodBuilder.addStatement(sendCommand + "(chromeRequest)");
     } else {
-      ClassPackageResolver classPackageResolver = new ClassPackageResolver(packageName, returnTypeName.get());
+      ClassPackageResolver classPackageResolver = new ClassPackageResolver(
+        packageName,
+        returnTypeName.get()
+      );
       TypeName valueType = returnValues.size() == 1
-          ? getTypeName(returnValues.get(0), packageName)
-          : ClassName.get(classPackageResolver.getPackageName(),
-                          classPackageResolver.getClassName());
+        ? getTypeName(returnValues.get(0), packageName)
+        : ClassName.get(
+          classPackageResolver.getPackageName(),
+          classPackageResolver.getClassName()
+        );
 
       TypeName returnType = valueType;
       if (async) {
-        returnType = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class), returnType);
+        returnType =
+          ParameterizedTypeName.get(ClassName.get(CompletableFuture.class), returnType);
       }
       methodBuilder
-          .returns(returnType)
-          .addStatement("return " + sendCommand + "(chromeRequest, new $T<$T>(){})", ClassName.get(TypeReference.class), valueType);
+        .returns(returnType)
+        .addStatement(
+          "return " + sendCommand + "(chromeRequest, new $T<$T>(){})",
+          ClassName.get(TypeReference.class),
+          valueType
+        );
     }
 
     if (command.getDescription().isPresent()) {
@@ -615,20 +795,35 @@ public class Generator {
 
   private String formatParamForJavadoc(Property property) {
     String optional = property.getOptional().orElse(false) ? "[Optional]" : "";
-    return String.format("@param %s %s %s", property.getName(), optional, property.getDescription().get());
+    return String.format(
+      "@param %s %s %s",
+      property.getName(),
+      optional,
+      property.getDescription().get()
+    );
   }
 
   private TypeName getTypeName(Property property, String packageName) {
     if (property.getRef().isPresent()) {
-      ClassPackageResolver resolver = new ClassPackageResolver(packageName, property.getRef().get());
+      ClassPackageResolver resolver = new ClassPackageResolver(
+        packageName,
+        property.getRef().get()
+      );
       return ClassName.get(resolver.getPackageName(), resolver.getClassName());
     }
-    return getJavaLangTypeName(property.getType().get(), property.getItems(), packageName);
+    return getJavaLangTypeName(
+      property.getType().get(),
+      property.getItems(),
+      packageName
+    );
   }
 
   private TypeName getTypeName(Item item, String packageName) {
     if (item.getRef().isPresent()) {
-      ClassPackageResolver resolver = new ClassPackageResolver(packageName, item.getRef().get());
+      ClassPackageResolver resolver = new ClassPackageResolver(
+        packageName,
+        item.getRef().get()
+      );
       return ClassName.get(resolver.getPackageName(), resolver.getClassName());
     }
     return getJavaLangTypeName(item.getType().get(), Optional.empty(), packageName);
@@ -639,7 +834,11 @@ public class Generator {
     return ClassName.get(resolver.getPackageName(), resolver.getClassName());
   }
 
-  private TypeName getJavaLangTypeName(String typeName, Optional<Item> typeParam, String packageName) {
+  private TypeName getJavaLangTypeName(
+    String typeName,
+    Optional<Item> typeParam,
+    String packageName
+  ) {
     if (typeName.equals("number")) {
       return ClassName.get(Number.class);
     }
@@ -648,16 +847,18 @@ public class Generator {
     }
     if (typeName.equals("array")) {
       return ParameterizedTypeName.get(
-          ClassName.get(List.class),
-          getTypeName(typeParam.get(), packageName));
+        ClassName.get(List.class),
+        getTypeName(typeParam.get(), packageName)
+      );
     }
     return ClassName.get("java.lang", capitalize(typeName));
   }
 
   private void writeJavaFile(Path packageRoot, String packageName, TypeSpec typeSpec) {
-    JavaFile javaFile = JavaFile.builder(packageName, typeSpec)
-        .skipJavaLangImports(true)
-        .build();
+    JavaFile javaFile = JavaFile
+      .builder(packageName, typeSpec)
+      .skipJavaLangImports(true)
+      .build();
     try {
       javaFile.writeTo(packageRoot);
     } catch (IOException e) {
