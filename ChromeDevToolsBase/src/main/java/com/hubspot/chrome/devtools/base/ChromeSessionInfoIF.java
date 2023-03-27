@@ -15,6 +15,9 @@ public interface ChromeSessionInfoIF {
   String getUrl();
   String getWebSocketDebuggerUrl();
 
+  /**
+   * Nullable because it's not always present on devtools targets, even in 112+.
+   */
   @Nullable
   String getFaviconUrl();
 }
