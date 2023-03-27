@@ -1,22 +1,24 @@
 package com.hubspot.chrome.devtools.base;
 
-import javax.annotation.Nullable;
-
-import org.immutables.value.Value.Immutable;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import javax.annotation.Nullable;
+import org.immutables.value.Value.Immutable;
 
 @Immutable
 @ChromeStyle
 public interface ChromeResponseIF {
   @Nullable
   Integer getId();
+
   @Nullable
   JsonNode getResult();
+
   @Nullable
   String getMethod();
+
   @Nullable
   JsonNode getParams();
+
   @Nullable
   ChromeResponseErrorBody getError();
 

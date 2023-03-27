@@ -1,15 +1,14 @@
 package com.hubspot.chrome.devtools.base;
 
 import java.util.Optional;
-
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Immutable;
 
 @Immutable
 @ChromeStyle
 public interface ChromiumSessionRequestIF {
-  int DEFAULT_SCREEN_WIDTH = 1366;  // WXGA width
-  int DEFAULT_SCREEN_HEIGHT = 768;  // WXGA height
+  int DEFAULT_SCREEN_WIDTH = 1366; // WXGA width
+  int DEFAULT_SCREEN_HEIGHT = 768; // WXGA height
 
   Optional<String> getUserAgent();
 

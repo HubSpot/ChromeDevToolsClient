@@ -1,8 +1,7 @@
 package com.hubspot.chrome.devtools.base;
 
-import java.util.concurrent.CompletableFuture;
-
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.concurrent.CompletableFuture;
 
 public interface ChromeSessionCore extends AutoCloseable {
   void send(ChromeRequest request);

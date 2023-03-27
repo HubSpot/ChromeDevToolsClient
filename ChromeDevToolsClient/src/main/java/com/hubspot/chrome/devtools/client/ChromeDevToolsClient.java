@@ -1,16 +1,5 @@
 package com.hubspot.chrome.devtools.client;
 
-import java.io.Closeable;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.rholder.retry.RetryException;
@@ -26,6 +15,15 @@ import com.hubspot.horizon.HttpRequest;
 import com.hubspot.horizon.HttpRequest.Method;
 import com.hubspot.horizon.HttpResponse;
 import com.hubspot.horizon.HttpRuntimeException;
+import java.io.Closeable;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChromeDevToolsClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsClient.class);
@@ -40,13 +38,22 @@ public class ChromeDevToolsClient implements Closeable {
   private final long actionTimeoutMillis;
   private final boolean defaultStartNewTarget;
 
-  private ChromeDevToolsClient(ObjectMapper objectMapper, ExecutorService executorService, HttpClient httpClient, long actionTimeoutMillis, long sessionConnectTimeoutMillis, boolean defaultStartNewTarget) {
+  private ChromeDevToolsClient(
+    ObjectMapper objectMapper,
+    ExecutorService executorService,
+    HttpClient httpClient,
+    long actionTimeoutMillis,
+    long sessionConnectTimeoutMillis,
+    boolean defaultStartNewTarget
+  ) {
     this.executorService = executorService;
     this.objectMapper = objectMapper;
     this.httpClient = httpClient;
     this.actionTimeoutMillis = actionTimeoutMillis;
     this.defaultStartNewTarget = defaultStartNewTarget;
-    this.httpRetryer = RetryerBuilder.<TargetID>newBuilder()
+    this.httpRetryer =
+      RetryerBuilder
+        .<TargetID>newBuilder()
         .retryIfExceptionOfType(ChromeDevToolsException.class)
         .retryIfExceptionOfType(HttpRuntimeException.class)
         .withStopStrategy(StopStrategies.stopAfterDelay(sessionConnectTimeoutMillis))
@@ -66,7 +73,12 @@ public class ChromeDevToolsClient implements Closeable {
       throw new ChromeDevToolsException(e);
     }
     String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
-    return new ChromeDevToolsSession(new URI(uri), objectMapper, executorService, actionTimeoutMillis);
+    return new ChromeDevToolsSession(
+      new URI(uri),
+      objectMapper,
+      executorService,
+      actionTimeoutMillis
+    );
   }
 
   @Override
@@ -84,10 +96,11 @@ public class ChromeDevToolsClient implements Closeable {
       return startNewTarget(host, port);
     }
     String url = String.format("http://%s:%d/json/list", host, port);
-    HttpRequest httpRequest = HttpRequest.newBuilder()
-        .setUrl(url)
-        .setMethod(Method.GET)
-        .build();
+    HttpRequest httpRequest = HttpRequest
+      .newBuilder()
+      .setUrl(url)
+      .setMethod(Method.GET)
+      .build();
 
     HttpResponse response = httpClient.execute(httpRequest);
 
@@ -104,10 +117,11 @@ public class ChromeDevToolsClient implements Closeable {
 
   private TargetID startNewTarget(String host, int port) {
     String url = String.format("http://%s:%d/json/new", host, port);
-    HttpRequest httpRequest = HttpRequest.newBuilder()
-        .setUrl(url)
-        .setMethod(Method.PUT)
-        .build();
+    HttpRequest httpRequest = HttpRequest
+      .newBuilder()
+      .setUrl(url)
+      .setMethod(Method.PUT)
+      .build();
     HttpResponse response = httpClient.execute(httpRequest);
 
     if (response.isError()) {
@@ -134,12 +148,16 @@ public class ChromeDevToolsClient implements Closeable {
       this.executorService = ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE;
       this.objectMapper = ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER;
       this.httpClient = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CLIENT;
-      this.actionTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS;
-      this.sessionConnectTimeoutMillis = ChromeDevToolsClientDefaults.DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS;
+      this.actionTimeoutMillis =
+        ChromeDevToolsClientDefaults.DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS;
+      this.sessionConnectTimeoutMillis =
+        ChromeDevToolsClientDefaults.DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS;
       this.defaultStartNewTarget = ChromeDevToolsClientDefaults.DEFAULT_START_NEW_TARGET;
     }
 
-    public ChromeDevToolsClient.Builder setExecutorService(ExecutorService executorService) {
+    public ChromeDevToolsClient.Builder setExecutorService(
+      ExecutorService executorService
+    ) {
       this.executorService = executorService;
       return this;
     }
@@ -176,7 +194,14 @@ public class ChromeDevToolsClient implements Closeable {
     }
 
     public ChromeDevToolsClient build() {
-      return new ChromeDevToolsClient(objectMapper, executorService, httpClient, actionTimeoutMillis, sessionConnectTimeoutMillis, defaultStartNewTarget);
+      return new ChromeDevToolsClient(
+        objectMapper,
+        executorService,
+        httpClient,
+        actionTimeoutMillis,
+        sessionConnectTimeoutMillis,
+        defaultStartNewTarget
+      );
     }
   }
 }

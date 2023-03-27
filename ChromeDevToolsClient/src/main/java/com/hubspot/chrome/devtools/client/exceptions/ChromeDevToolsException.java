@@ -1,7 +1,6 @@
 package com.hubspot.chrome.devtools.client.exceptions;
 
 public class ChromeDevToolsException extends RuntimeException {
-
   private final Integer code;
 
   public ChromeDevToolsException(String message) {

@@ -10,8 +10,8 @@ public class ClassPackageResolver {
 
     if (packageName.contains(".") && className.contains(".")) {
       this.packageName =
-          packageName.substring(0, packageName.lastIndexOf(".") + 1)
-          + className.substring(0, className.indexOf(".")).toLowerCase();
+        packageName.substring(0, packageName.lastIndexOf(".") + 1) +
+        className.substring(0, className.indexOf(".")).toLowerCase();
       this.className = className.substring(className.indexOf(".") + 1);
     }
   }

@@ -1,10 +1,9 @@
 package com.hubspot.chrome.devtools.base;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ChromeRequest {
   // It's *much* easier to implement this as a POJO instead of an immutable for two reasons:
@@ -34,6 +33,7 @@ public class ChromeRequest {
   public Integer getId() {
     return id;
   }
+
   public String getMethod() {
     return method;
   }
@@ -54,5 +54,4 @@ public class ChromeRequest {
     }
     return this;
   }
-
 }

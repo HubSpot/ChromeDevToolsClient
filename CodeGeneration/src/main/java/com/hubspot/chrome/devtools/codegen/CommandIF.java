@@ -1,11 +1,9 @@
 package com.hubspot.chrome.devtools.codegen;
 
+import com.hubspot.chrome.devtools.base.ChromeStyle;
 import java.util.List;
 import java.util.Optional;
-
 import org.immutables.value.Value.Immutable;
-
-import com.hubspot.chrome.devtools.base.ChromeStyle;
 
 @Immutable
 @ChromeStyle

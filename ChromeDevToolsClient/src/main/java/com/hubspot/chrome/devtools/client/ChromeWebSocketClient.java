@@ -30,11 +30,9 @@ import org.slf4j.LoggerFactory;
 
 public class ChromeWebSocketClient extends WebSocketClient {
   private final Logger LOG = LoggerFactory.getLogger(ChromeWebSocketClient.class);
-  private static final Map<String, EventType> EVENT_TYPES = Arrays.stream(EventType.values())
-      .collect(Collectors.toMap(
-          EventType::getType,
-          Function.identity()
-      ));
+  private static final Map<String, EventType> EVENT_TYPES = Arrays
+    .stream(EventType.values())
+    .collect(Collectors.toMap(EventType::getType, Function.identity()));
 
   private final Retryer<ChromeResponse> actionRetryer;
 
@@ -44,11 +42,13 @@ public class ChromeWebSocketClient extends WebSocketClient {
   private final Map<String, ChromeEventListener> chromeEventListeners;
   private final ExecutorService executorService;
 
-  public ChromeWebSocketClient(URI uri,
-                               ObjectMapper objectMapper,
-                               Map<String, ChromeEventListener> chromeEventListeners,
-                               ExecutorService executorService,
-                               long actionTimeoutMillis) {
+  public ChromeWebSocketClient(
+    URI uri,
+    ObjectMapper objectMapper,
+    Map<String, ChromeEventListener> chromeEventListeners,
+    ExecutorService executorService,
+    long actionTimeoutMillis
+  ) {
     super(uri);
     this.objectMapper = objectMapper;
     this.chromeEventListeners = chromeEventListeners;
@@ -58,7 +58,9 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
     // The timeout here is merely a safety net in case the user doesn't complete the futures
     // this returns with their own timeout.
-    this.actionRetryer = RetryerBuilder.<ChromeResponse>newBuilder()
+    this.actionRetryer =
+      RetryerBuilder
+        .<ChromeResponse>newBuilder()
         .retryIfResult(Objects::isNull)
         .withStopStrategy(StopStrategies.stopAfterDelay(actionTimeoutMillis))
         .withWaitStrategy(WaitStrategies.exponentialWait(100, TimeUnit.MILLISECONDS))
@@ -110,7 +112,10 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   @Override
   public void onMessage(ByteBuffer message) {
-    LOG.warn("Not set up to handle byte buffer, received buffer of size {}", message.array().length);
+    LOG.warn(
+      "Not set up to handle byte buffer, received buffer of size {}",
+      message.array().length
+    );
   }
 
   @Override
@@ -120,13 +125,15 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   public ChromeResponse getResponse(int id) {
     try {
-      ChromeResponse response = actionRetryer.call(() -> {
-        if (errorsReceived.containsKey(id)) {
-          ChromeResponseErrorBody error = errorsReceived.get(id);
-          throw new ChromeDevToolsException(error.getMessage(), error.getCode());
+      ChromeResponse response = actionRetryer.call(
+        () -> {
+          if (errorsReceived.containsKey(id)) {
+            ChromeResponseErrorBody error = errorsReceived.get(id);
+            throw new ChromeDevToolsException(error.getMessage(), error.getCode());
+          }
+          return messagesReceived.get(id);
         }
-        return messagesReceived.get(id);
-      });
+      );
       messagesReceived.remove(id);
       return response;
     } catch (ExecutionException | RetryException e) {
