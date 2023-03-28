@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.hubspot.chrome.devtools.client.core.Event;
 import com.hubspot.chrome.devtools.client.core.EventDeserializer;
 import com.hubspot.horizon.HttpClient;
+import com.hubspot.horizon.HttpConfig;
 import com.hubspot.horizon.ning.NingHttpClient;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedTransferQueue;
@@ -21,20 +22,20 @@ public class ChromeDevToolsClientDefaults {
     TimeUnit.SECONDS,
     new LinkedTransferQueue<>()
   );
-  public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper();
+  public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper()
+  .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   static {
-    DEFAULT_OBJECT_MAPPER.configure(
-      DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-      false
-    );
+    DEFAULT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     DEFAULT_OBJECT_MAPPER.setSerializationInclusion(Include.NON_NULL);
     SimpleModule module = new SimpleModule();
     module.addDeserializer(Event.class, new EventDeserializer());
     DEFAULT_OBJECT_MAPPER.registerModule(module);
   }
 
-  public static final HttpClient DEFAULT_HTTP_CLIENT = new NingHttpClient();
+  public static final HttpClient DEFAULT_HTTP_CLIENT = new NingHttpClient(
+    HttpConfig.newBuilder().setObjectMapper(DEFAULT_OBJECT_MAPPER).build()
+  );
   public static final int DEFAULT_CHROME_ACTION_TIMEOUT_MILLIS = 60 * 1000;
   public static final int DEFAULT_HTTP_CONNECTION_RETRY_TIMEOUT_MILLIS = 5 * 1000;
   public static final boolean DEFAULT_START_NEW_TARGET = false;
