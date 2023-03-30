@@ -1535,7 +1535,11 @@
                     "type": "string",
                     "enum": [
                         "CrossOriginPortalPostMessageError",
-                        "FormLabelForNameError"
+                        "FormLabelForNameError",
+                        "FormDuplicateIdForInputError",
+                        "FormInputWithNoLabelError",
+                        "FormAutocompleteAttributeEmptyError",
+                        "FormEmptyIdAndNameAttributesForInputError"
                     ]
                 },
                 {
@@ -1590,6 +1594,7 @@
                         "NoSysexWebMIDIWithoutPermission",
                         "NotificationInsecureOrigin",
                         "NotificationPermissionRequestedIframe",
+                        "ObsoleteCreateImageBitmapImageOrientationNone",
                         "ObsoleteWebRtcCipherSuite",
                         "OpenWebDatabaseInsecureContext",
                         "OverflowVisibleOnReplacedElement",
@@ -1606,6 +1611,7 @@
                         "PrefixedVideoExitFullscreen",
                         "PrefixedVideoExitFullScreen",
                         "PrefixedVideoSupportsFullscreen",
+                        "PrivacySandboxExtensionsAPI",
                         "RangeExpand",
                         "RequestedSubresourceWithEmbeddedCredentials",
                         "RTCConstraintEnableDtlsSrtpFalse",
@@ -1669,6 +1675,7 @@
                         "WellKnownHttpNotFound",
                         "WellKnownNoResponse",
                         "WellKnownInvalidResponse",
+                        "WellKnownListEmpty",
                         "ConfigNotInWellKnown",
                         "WellKnownTooBig",
                         "ConfigHttpNotFound",
@@ -1683,6 +1690,7 @@
                         "AccountsHttpNotFound",
                         "AccountsNoResponse",
                         "AccountsInvalidResponse",
+                        "AccountsListEmpty",
                         "IdTokenHttpNotFound",
                         "IdTokenNoResponse",
                         "IdTokenInvalidResponse",
@@ -2175,6 +2183,7 @@
                         "protectedMediaIdentifier",
                         "sensors",
                         "storageAccess",
+                        "topLevelStorageAccess",
                         "videoCapture",
                         "videoCapturePanTiltZoom",
                         "wakeLockScreen",
@@ -2490,7 +2499,7 @@
                         },
                         {
                             "name": "delta",
-                            "description": "If true, retrieve delta since last call.",
+                            "description": "If true, retrieve delta since last delta call.",
                             "optional": true,
                             "type": "boolean"
                         }
@@ -2518,7 +2527,7 @@
                         },
                         {
                             "name": "delta",
-                            "description": "If true, retrieve delta since last call.",
+                            "description": "If true, retrieve delta since last delta call.",
                             "optional": true,
                             "type": "boolean"
                         }
@@ -8007,6 +8016,7 @@
                     "properties": [
                         {
                             "name": "brands",
+                            "description": "Brands appearing in Sec-CH-UA.",
                             "optional": true,
                             "type": "array",
                             "items": {
@@ -8015,6 +8025,7 @@
                         },
                         {
                             "name": "fullVersionList",
+                            "description": "Brands appearing in Sec-CH-UA-Full-Version-List.",
                             "optional": true,
                             "type": "array",
                             "items": {
@@ -11380,12 +11391,12 @@
                     "type": "object",
                     "properties": [
                         {
-                            "name": "type",
+                            "name": "operation",
                             "$ref": "TrustTokenOperationType"
                         },
                         {
                             "name": "refreshPolicy",
-                            "description": "Only set for \"token-redemption\" type and determine whether\nto request a fresh SRR or use a still valid cached SRR.",
+                            "description": "Only set for \"token-redemption\" operation and determine whether\nto request a fresh SRR or use a still valid cached SRR.",
                             "type": "string",
                             "enum": [
                                 "UseCached",
@@ -12789,7 +12800,8 @@
                 },
                 {
                     "name": "getAllCookies",
-                    "description": "Returns all browser cookies. Depending on the backend support, will return detailed cookie\ninformation in the `cookies` field.",
+                    "description": "Returns all browser cookies. Depending on the backend support, will return detailed cookie\ninformation in the `cookies` field.\nDeprecated. Use Storage.getCookies instead.",
+                    "deprecated": true,
                     "returns": [
                         {
                             "name": "cookies",
@@ -13919,6 +13931,18 @@
                             "description": "Raw response header text as it was received over the wire. The raw text may not always be\navailable, such as in the case of HTTP/2 or QUIC.",
                             "optional": true,
                             "type": "string"
+                        },
+                        {
+                            "name": "cookiePartitionKey",
+                            "description": "The cookie partition key that will be used to store partitioned cookies set in this response.\nOnly sent when partitioned cookies are enabled.",
+                            "optional": true,
+                            "type": "string"
+                        },
+                        {
+                            "name": "cookiePartitionKeyOpaque",
+                            "description": "True if partitioned cookies are enabled, but the partition key is not serializeable to string.",
+                            "optional": true,
+                            "type": "boolean"
                         }
                     ]
                 },
@@ -15372,12 +15396,14 @@
                         "otp-credentials",
                         "payment",
                         "picture-in-picture",
+                        "private-aggregation",
                         "publickey-credentials-get",
                         "run-ad-auction",
                         "screen-wake-lock",
                         "serial",
                         "shared-autofill",
                         "shared-storage",
+                        "shared-storage-select-url",
                         "smart-card",
                         "storage-access",
                         "sync-xhr",
@@ -15386,6 +15412,7 @@
                         "usb",
                         "vertical-scroll",
                         "web-share",
+                        "window-management",
                         "window-placement",
                         "xr-spatial-tracking"
                     ]
@@ -16300,6 +16327,7 @@
                         "InjectedJavascript",
                         "InjectedStyleSheet",
                         "KeepaliveRequest",
+                        "IndexedDBEvent",
                         "Dummy",
                         "AuthorizationHeader",
                         "ContentSecurityHandler",
@@ -16441,7 +16469,13 @@
                         "SameSiteCrossOriginNavigationNotOptIn",
                         "ActivationNavigationParameterMismatch",
                         "ActivatedInBackground",
-                        "EmbedderHostDisallowed"
+                        "EmbedderHostDisallowed",
+                        "ActivationNavigationDestroyedBeforeSuccess",
+                        "TabClosedByUserGesture",
+                        "TabClosedWithoutUserGesture",
+                        "PrimaryMainFrameRendererProcessCrashed",
+                        "PrimaryMainFrameRendererProcessKilled",
+                        "ActivationFramePolicyNotCompatible"
                     ]
                 }
             ],
@@ -19836,6 +19870,17 @@
                     ]
                 },
                 {
+                    "name": "resetSharedStorageBudget",
+                    "description": "Resets the budget for `ownerOrigin` by clearing all budget withdrawals.",
+                    "experimental": true,
+                    "parameters": [
+                        {
+                            "name": "ownerOrigin",
+                            "type": "string"
+                        }
+                    ]
+                },
+                {
                     "name": "setSharedStorageTracking",
                     "description": "Enables/disables issuing of sharedStorageAccessed events.",
                     "experimental": true,
@@ -20590,6 +20635,13 @@
                         {
                             "name": "background",
                             "description": "Whether to create the target in background or foreground (chrome-only,\nfalse by default).",
+                            "optional": true,
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "forTab",
+                            "description": "Whether to create the target of type \"tab\".",
+                            "experimental": true,
                             "optional": true,
                             "type": "boolean"
                         }
@@ -22259,6 +22311,12 @@
                         {
                             "name": "hasMinPinLength",
                             "description": "If set to true, the authenticator will support the minPinLength extension.\nhttps://fidoalliance.org/specs/fido-v2.1-ps-20210615/fido-client-to-authenticator-protocol-v2.1-ps-20210615.html#sctn-minpinlength-extension\nDefaults to false.",
+                            "optional": true,
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "hasPrf",
+                            "description": "If set to true, the authenticator will support the prf extension.\nhttps://w3c.github.io/webauthn/#prf-extension\nDefaults to false.",
                             "optional": true,
                             "type": "boolean"
                         },
