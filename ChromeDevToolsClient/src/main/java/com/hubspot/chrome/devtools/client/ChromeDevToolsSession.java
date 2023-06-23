@@ -64,7 +64,11 @@ import com.hubspot.chrome.devtools.client.core.tethering.Tethering;
 import com.hubspot.chrome.devtools.client.core.tracing.Tracing;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -118,6 +122,36 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.id = UUID.randomUUID();
 
     try {
+      this.websocket.setSocketFactory(new SocketFactory() {
+        @Override
+        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+          return configure(new Socket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+          return configure(new Socket(host, port, localHost, localPort));
+
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+          return configure(new Socket(host, port));
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+          return configure(new Socket(address, port, localAddress, localPort));
+        }
+
+        private Socket configure(Socket socket) {
+          try {
+            socket.setReceiveBufferSize(1024 * 1024);
+          } catch (SocketException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
       this.websocket.connectBlocking();
     } catch (Throwable t) {
       throw new ChromeDevToolsException(
