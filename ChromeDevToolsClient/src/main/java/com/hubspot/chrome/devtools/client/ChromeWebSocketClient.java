@@ -53,7 +53,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
   ) {
     super(uri);
     SocketFactory socketFactory = SocketFactory.getDefault();
-    this.setSocketFactory(socketFactory);
+    super.setSocketFactory(socketFactory);
 
     this.objectMapper = objectMapper;
     this.chromeEventListeners = chromeEventListeners;
