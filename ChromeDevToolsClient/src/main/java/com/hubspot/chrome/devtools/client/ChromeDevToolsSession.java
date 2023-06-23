@@ -118,7 +118,6 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.id = UUID.randomUUID();
 
     try {
-      this.websocket.setSocketFactory(SocketFactory.getDefault());
       this.websocket.connectBlocking();
     } catch (Throwable t) {
       throw new ChromeDevToolsException(

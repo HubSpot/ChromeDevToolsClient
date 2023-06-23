@@ -28,6 +28,8 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.SocketFactory;
+
 public class ChromeWebSocketClient extends WebSocketClient {
   private final Logger LOG = LoggerFactory.getLogger(ChromeWebSocketClient.class);
   private static final Map<String, EventType> EVENT_TYPES = Arrays
@@ -50,6 +52,9 @@ public class ChromeWebSocketClient extends WebSocketClient {
     long actionTimeoutMillis
   ) {
     super(uri);
+    SocketFactory socketFactory = SocketFactory.getDefault();
+    this.setSocketFactory(socketFactory);
+
     this.objectMapper = objectMapper;
     this.chromeEventListeners = chromeEventListeners;
     this.executorService = executorService;
