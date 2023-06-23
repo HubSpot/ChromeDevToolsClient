@@ -147,6 +147,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
         private Socket configure(Socket socket) {
           try {
             socket.setReceiveBufferSize(1024 * 1024);
+            return socket;
           } catch (SocketException e) {
             throw new RuntimeException(e);
           }
