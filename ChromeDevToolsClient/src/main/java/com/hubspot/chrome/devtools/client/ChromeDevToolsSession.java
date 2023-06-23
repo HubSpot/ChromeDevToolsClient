@@ -83,6 +83,8 @@ import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.SocketFactory;
+
 public class ChromeDevToolsSession implements ChromeSessionCore {
   private final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsSession.class);
 
@@ -116,6 +118,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.id = UUID.randomUUID();
 
     try {
+      this.websocket.setSocketFactory(SocketFactory.getDefault());
       this.websocket.connectBlocking();
     } catch (Throwable t) {
       throw new ChromeDevToolsException(
