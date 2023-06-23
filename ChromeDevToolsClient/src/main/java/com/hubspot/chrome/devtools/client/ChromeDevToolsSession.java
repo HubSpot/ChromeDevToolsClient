@@ -123,6 +123,12 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
     try {
       this.websocket.setSocketFactory(new SocketFactory() {
+
+        @Override
+        public Socket createSocket() throws IOException {
+          return configure(new Socket());
+        }
+
         @Override
         public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
           return configure(new Socket(host, port));
