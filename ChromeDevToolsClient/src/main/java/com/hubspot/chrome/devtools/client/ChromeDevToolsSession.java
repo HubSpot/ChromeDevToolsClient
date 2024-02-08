@@ -13,6 +13,7 @@ import com.google.common.base.Predicates;
 import com.hubspot.chrome.devtools.base.ChromeRequest;
 import com.hubspot.chrome.devtools.base.ChromeResponse;
 import com.hubspot.chrome.devtools.base.ChromeSessionCore;
+import com.hubspot.chrome.devtools.client.core.Event;
 import com.hubspot.chrome.devtools.client.core.EventType;
 import com.hubspot.chrome.devtools.client.core.accessibility.Accessibility;
 import com.hubspot.chrome.devtools.client.core.animation.Animation;
@@ -59,6 +60,7 @@ import com.hubspot.chrome.devtools.client.core.security.Security;
 import com.hubspot.chrome.devtools.client.core.serviceworker.ServiceWorker;
 import com.hubspot.chrome.devtools.client.core.storage.Storage;
 import com.hubspot.chrome.devtools.client.core.systeminfo.SystemInfo;
+import com.hubspot.chrome.devtools.client.core.target.SessionID;
 import com.hubspot.chrome.devtools.client.core.target.Target;
 import com.hubspot.chrome.devtools.client.core.tethering.Tethering;
 import com.hubspot.chrome.devtools.client.core.tracing.Tracing;
@@ -78,6 +80,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import org.slf4j.Logger;
@@ -407,6 +410,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return listenerId;
   }
 
+  public <T> String addEventConsumer(EventType eventType, BiConsumer<SessionID, T> eventConsumer) {
+    String listenerId = String.format(
+      "ChromeDevToolsSession-%s-%sConsumer-%s",
+      id,
+      eventType.getClazz().toString(),
+      chromeEventListeners.size() + 1
+    );
+    addEventListener(listenerId, createEventListener(eventType, eventConsumer));
+    return listenerId;
+  }
+
   private <T> ChromeEventListener createEventListener(
     EventType eventType,
     Consumer<T> eventConsumer
@@ -418,6 +432,29 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
         }
       } catch (Throwable t) {
         LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
+      }
+    };
+  }
+
+  private <T> ChromeEventListener createEventListener(
+    EventType eventType,
+    BiConsumer<SessionID, T> eventConsumer
+  ) {
+    return new ChromeEventListener() {
+      @Override
+      public void onEvent(EventType type, Event event) {
+        onEvent(null, type, event);
+      }
+
+      @Override
+      public void onEvent(SessionID sessionId, EventType type, Event event) {
+        try {
+          if (type == eventType) {
+            eventConsumer.accept(sessionId, (T) event);
+          }
+        } catch (Throwable t) {
+          LOG.warn("Could not get {}", eventType.getClazz().toString(), t);
+        }
       }
     };
   }

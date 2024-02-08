@@ -20,6 +20,9 @@ public interface ChromeResponseIF {
   JsonNode getParams();
 
   @Nullable
+  String getSessionId();
+
+  @Nullable
   ChromeResponseErrorBody getError();
 
   default boolean isResponse() {
