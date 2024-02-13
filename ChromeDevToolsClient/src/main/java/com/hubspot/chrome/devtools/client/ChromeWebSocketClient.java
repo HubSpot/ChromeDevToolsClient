@@ -10,6 +10,7 @@ import com.hubspot.chrome.devtools.base.ChromeResponse;
 import com.hubspot.chrome.devtools.base.ChromeResponseErrorBody;
 import com.hubspot.chrome.devtools.client.core.Event;
 import com.hubspot.chrome.devtools.client.core.EventType;
+import com.hubspot.chrome.devtools.client.core.target.SessionID;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 import java.io.IOException;
 import java.net.URI;
@@ -97,9 +98,10 @@ public class ChromeWebSocketClient extends WebSocketClient {
         messagesReceived.put(response.getId(), response);
       } else if (response.isEvent()) {
         Event event = objectMapper.readValue(message, Event.class);
+        SessionID sessionId = response.getSessionId() == null ? null : new SessionID(response.getSessionId());
         for (ChromeEventListener eventListener : chromeEventListeners.values()) {
           EventType type = EVENT_TYPES.get(response.getMethod());
-          executorService.submit(() -> eventListener.onEvent(type, event));
+          executorService.submit(() -> eventListener.onEvent(sessionId, type, event));
         }
       } else if (response.isError()) {
         LOG.error(response.getError().toString());

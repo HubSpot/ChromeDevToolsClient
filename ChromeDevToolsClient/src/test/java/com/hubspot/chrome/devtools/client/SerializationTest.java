@@ -14,6 +14,7 @@ import com.hubspot.chrome.devtools.client.core.dom.DocumentUpdatedEvent;
 import com.hubspot.chrome.devtools.client.core.page.DomContentEventFiredEvent;
 import com.hubspot.chrome.devtools.client.core.runtime.CallArgument;
 import com.hubspot.chrome.devtools.client.core.runtime.ExceptionRevokedEvent;
+import com.hubspot.chrome.devtools.client.core.target.SessionID;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
@@ -60,15 +61,43 @@ public class SerializationTest {
       "{\"method\":\"Page.domContentEventFired\",\"params\":{\"timestamp\":904169.746022}}";
     client.onMessage(json);
 
-    Retryer<EventAndType> retryer = RetryerBuilder
-      .<EventAndType>newBuilder()
+    Retryer<OnEventInvocation> retryer = RetryerBuilder
+      .<OnEventInvocation>newBuilder()
       .retryIfResult(Objects::isNull)
       .withStopStrategy(StopStrategies.stopAfterDelay(1000))
       .build();
 
-    EventAndType args = retryer.call(listener::getLastOnEventCallArgs);
-    EventType eventType = args.getType();
-    assertThat(eventType.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
+    OnEventInvocation args = retryer.call(listener::getLastOnEventCallArgs);
+    assertThat(args.type.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
+    assertThat(args.event.getClass()).isEqualTo(DomContentEventFiredEvent.class);
+    assertThat(args.sessionId).isNull();
+  }
+
+  @Test
+  public void itDeserializesEventsFromBrowserProtocolInFlatMode() throws Exception {
+    SpyListener listener = new SpyListener();
+    ChromeWebSocketClient client = new ChromeWebSocketClient(
+      URI.create(""),
+      ChromeDevToolsClientDefaults.DEFAULT_OBJECT_MAPPER,
+      Collections.singletonMap("listenerId1", listener),
+      ChromeDevToolsClientDefaults.DEFAULT_EXECUTOR_SERVICE,
+      1000L
+    );
+
+    String json =
+      "{\"method\":\"Page.domContentEventFired\",\"params\":{\"timestamp\":904169.746022},\"sessionId\":\"CE684D56A54B9E99D1C91E14FDB80417\"}";
+    client.onMessage(json);
+
+    Retryer<OnEventInvocation> retryer = RetryerBuilder
+      .<OnEventInvocation>newBuilder()
+      .retryIfResult(Objects::isNull)
+      .withStopStrategy(StopStrategies.stopAfterDelay(1000))
+      .build();
+
+    OnEventInvocation args = retryer.call(listener::getLastOnEventCallArgs);
+    assertThat(args.type.getClazz()).isEqualTo(DomContentEventFiredEvent.class);
+    assertThat(args.event.getClass()).isEqualTo(DomContentEventFiredEvent.class);
+    assertThat(args.sessionId.getValue()).isEqualTo("CE684D56A54B9E99D1C91E14FDB80417");
   }
 
   @Test
@@ -86,15 +115,14 @@ public class SerializationTest {
       "{\"method\":\"Runtime.exceptionRevoked\",\"params\":{\"reason\":\"my reason\",\"exceptionId\":1}}";
     client.onMessage(json);
 
-    Retryer<EventAndType> retryer = RetryerBuilder
-      .<EventAndType>newBuilder()
+    Retryer<OnEventInvocation> retryer = RetryerBuilder
+      .<OnEventInvocation>newBuilder()
       .retryIfResult(Objects::isNull)
       .withStopStrategy(StopStrategies.stopAfterDelay(1000))
       .build();
 
-    EventAndType args = retryer.call(listener::getLastOnEventCallArgs);
-    EventType eventType = args.getType();
-    assertThat(eventType.getClazz()).isEqualTo(ExceptionRevokedEvent.class);
+    OnEventInvocation args = retryer.call(listener::getLastOnEventCallArgs);
+    assertThat(args.type.getClazz()).isEqualTo(ExceptionRevokedEvent.class);
   }
 
   @Test
@@ -107,34 +135,37 @@ public class SerializationTest {
       .isInstanceOf(FontsUpdatedEvent.class);
   }
 
-  class SpyListener implements ChromeEventListener {
-    private EventAndType lastOnEventCallParams;
+  static class SpyListener implements ChromeEventListener {
+    private OnEventInvocation lastOnEventCallParams;
 
     @Override
     public void onEvent(EventType type, Event event) {
-      lastOnEventCallParams = new EventAndType(event, type);
+      lastOnEventCallParams = new OnEventInvocation(event, type);
     }
 
-    public EventAndType getLastOnEventCallArgs() {
+    @Override
+    public void onEvent(SessionID sessionId, EventType type, Event event) {
+      lastOnEventCallParams = new OnEventInvocation(sessionId, event, type);
+    }
+
+    private OnEventInvocation getLastOnEventCallArgs() {
       return lastOnEventCallParams;
     }
   }
 
-  private static class EventAndType {
+  private static class OnEventInvocation {
+    private final SessionID sessionId;
     private final Event event;
     private final EventType type;
 
-    public EventAndType(Event event, EventType type) {
+    public OnEventInvocation(Event event, EventType type) {
+      this(null, event, type);
+    }
+
+    public OnEventInvocation(SessionID sessionId, Event event, EventType type) {
+      this.sessionId = sessionId;
       this.event = event;
       this.type = type;
-    }
-
-    public Event getEvent() {
-      return event;
-    }
-
-    public EventType getType() {
-      return type;
     }
   }
 }
