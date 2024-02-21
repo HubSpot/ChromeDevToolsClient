@@ -8,7 +8,7 @@
   </parent>
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
-  <version>120.0.6099.109-SNAPSHOT</version>
+  <version>121.0.6167.85-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
