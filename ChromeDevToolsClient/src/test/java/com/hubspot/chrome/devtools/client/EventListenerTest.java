@@ -153,7 +153,11 @@ public class EventListenerTest {
     Map<String, LoadEventFiredEvent> events = new HashMap<>();
     chromeDevToolsSession.addEventConsumer(
       eventType,
-      (sessionId, event) -> events.put(sessionId == null ? "None" : sessionId.getValue(), (LoadEventFiredEvent) event)
+      (sessionId, event) ->
+        events.put(
+          sessionId == null ? "None" : sessionId.getValue(),
+          (LoadEventFiredEvent) event
+        )
     );
 
     String jsonWithoutSessionId =
@@ -177,6 +181,7 @@ public class EventListenerTest {
 
     assertThat(events.size()).isEqualTo(2);
     assertThat(events.get("None").getTimestamp().getValue().intValue()).isEqualTo(1);
-    assertThat(events.get("test-session-id").getTimestamp().getValue().intValue()).isEqualTo(2);
+    assertThat(events.get("test-session-id").getTimestamp().getValue().intValue())
+      .isEqualTo(2);
   }
 }

@@ -87,6 +87,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChromeDevToolsSession implements ChromeSessionCore {
+
   private final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsSession.class);
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 10000L;
@@ -254,8 +255,8 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
       .withWaitStrategy(WaitStrategies.fixedWait(periodMillis, TimeUnit.MILLISECONDS))
       .build();
     try {
-      retryer.call(
-        () -> (Boolean) evaluate("document.readyState === \"complete\"").result.getValue()
+      retryer.call(() ->
+        (Boolean) evaluate("document.readyState === \"complete\"").result.getValue()
       );
     } catch (ExecutionException | RetryException e) {
       throw new ChromeDevToolsException(e);
@@ -410,7 +411,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return listenerId;
   }
 
-  public <T> String addEventConsumer(EventType eventType, BiConsumer<SessionID, T> eventConsumer) {
+  public <T> String addEventConsumer(
+    EventType eventType,
+    BiConsumer<SessionID, T> eventConsumer
+  ) {
     String listenerId = String.format(
       "ChromeDevToolsSession-%s-%sConsumer-%s",
       id,

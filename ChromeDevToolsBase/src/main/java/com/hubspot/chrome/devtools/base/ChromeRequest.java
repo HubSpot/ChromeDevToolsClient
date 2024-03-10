@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChromeRequest {
+
   // It's *much* easier to implement this as a POJO instead of an immutable for two reasons:
   //
   //  1. Immutable::putParams does not allow setting null values (even with

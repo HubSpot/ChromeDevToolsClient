@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ChromeDevToolsClientDefaults {
+
   public static final ExecutorService DEFAULT_EXECUTOR_SERVICE = new ThreadPoolExecutor(
     10,
     10,
@@ -23,10 +24,13 @@ public class ChromeDevToolsClientDefaults {
     new LinkedTransferQueue<>()
   );
   public static final ObjectMapper DEFAULT_OBJECT_MAPPER = new ObjectMapper()
-  .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   static {
-    DEFAULT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    DEFAULT_OBJECT_MAPPER.configure(
+      DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+      false
+    );
     DEFAULT_OBJECT_MAPPER.setSerializationInclusion(Include.NON_NULL);
     SimpleModule module = new SimpleModule();
     module.addDeserializer(Event.class, new EventDeserializer());

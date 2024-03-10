@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChromeWebSocketClient extends WebSocketClient {
+
   private final Logger LOG = LoggerFactory.getLogger(ChromeWebSocketClient.class);
   private static final Map<String, EventType> EVENT_TYPES = Arrays
     .stream(EventType.values())
@@ -98,7 +99,9 @@ public class ChromeWebSocketClient extends WebSocketClient {
         messagesReceived.put(response.getId(), response);
       } else if (response.isEvent()) {
         Event event = objectMapper.readValue(message, Event.class);
-        SessionID sessionId = response.getSessionId() == null ? null : new SessionID(response.getSessionId());
+        SessionID sessionId = response.getSessionId() == null
+          ? null
+          : new SessionID(response.getSessionId());
         for (ChromeEventListener eventListener : chromeEventListeners.values()) {
           EventType type = EVENT_TYPES.get(response.getMethod());
           executorService.submit(() -> eventListener.onEvent(sessionId, type, event));
@@ -127,15 +130,13 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   public ChromeResponse getResponse(int id) {
     try {
-      ChromeResponse response = actionRetryer.call(
-        () -> {
-          if (errorsReceived.containsKey(id)) {
-            ChromeResponseErrorBody error = errorsReceived.get(id);
-            throw new ChromeDevToolsException(error.getMessage(), error.getCode());
-          }
-          return messagesReceived.get(id);
+      ChromeResponse response = actionRetryer.call(() -> {
+        if (errorsReceived.containsKey(id)) {
+          ChromeResponseErrorBody error = errorsReceived.get(id);
+          throw new ChromeDevToolsException(error.getMessage(), error.getCode());
         }
-      );
+        return messagesReceived.get(id);
+      });
       messagesReceived.remove(id);
       return response;
     } catch (ExecutionException | RetryException e) {

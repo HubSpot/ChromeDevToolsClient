@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
 
 public class Generator {
+
   private static final String GENERATED_CODE_PACKAGE_NAME =
     "com.hubspot.chrome.devtools.client.core";
 
