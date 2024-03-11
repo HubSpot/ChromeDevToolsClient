@@ -10,6 +10,7 @@ import java.util.List;
 
 // Run chrome with args --headless --disable-gpu --remote-debugging-port=9292
 public class ScreenshotExample {
+
   private static String url = "https://www.google.com/";
   private static String cssSelector = "#searchform.jhp";
 

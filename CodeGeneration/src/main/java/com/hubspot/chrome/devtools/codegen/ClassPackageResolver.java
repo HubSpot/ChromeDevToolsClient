@@ -1,6 +1,7 @@
 package com.hubspot.chrome.devtools.codegen;
 
 public class ClassPackageResolver {
+
   private String packageName;
   private String className;
 

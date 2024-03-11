@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.hubspot</groupId>
     <artifactId>basepom</artifactId>
-    <version>25.7</version>
+    <version>59.2</version>
   </parent>
   <groupId>com.hubspot.chrome</groupId>
   <artifactId>ChromeDevTools-parent</artifactId>
@@ -20,9 +20,7 @@
   <properties>
     <chromium.version>120.0.6099.109</chromium.version>
     <v8.version>12.0.267.10</v8.version>
-    <project.build.targetJdk>11</project.build.targetJdk>
-    <project.build.releaseJdk>${project.build.targetJdk}</project.build.releaseJdk>
-    <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
+    <basepom.check.skip-spotbugs>true</basepom.check.skip-spotbugs>
   </properties>
 
   <dependencyManagement>

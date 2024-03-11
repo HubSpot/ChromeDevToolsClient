@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChromeDevToolsClient implements Closeable {
+
   private static final Logger LOG = LoggerFactory.getLogger(ChromeDevToolsClient.class);
 
   private static final String WEBSOCKET_URL_TEMPLATE = "ws://%s:%s/devtools/page/%s";
@@ -135,6 +136,7 @@ public class ChromeDevToolsClient implements Closeable {
   }
 
   public static class Builder {
+
     private ExecutorService executorService;
     private ObjectMapper objectMapper;
     private HttpClient httpClient;

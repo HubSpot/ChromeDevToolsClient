@@ -136,6 +136,7 @@ public class SerializationTest {
   }
 
   static class SpyListener implements ChromeEventListener {
+
     private OnEventInvocation lastOnEventCallParams;
 
     @Override
@@ -154,6 +155,7 @@ public class SerializationTest {
   }
 
   private static class OnEventInvocation {
+
     private final SessionID sessionId;
     private final Event event;
     private final EventType type;
