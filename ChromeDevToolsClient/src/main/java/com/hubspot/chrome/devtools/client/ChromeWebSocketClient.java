@@ -135,6 +135,9 @@ public class ChromeWebSocketClient extends WebSocketClient {
           ChromeResponseErrorBody error = errorsReceived.get(id);
           throw new ChromeDevToolsException(error.getMessage(), error.getCode());
         }
+        if (!isOpen()) {
+          throw new ChromeDevToolsException("Websocket is not connected");
+        }
         return messagesReceived.get(id);
       });
       messagesReceived.remove(id);
