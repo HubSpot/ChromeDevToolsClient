@@ -205,7 +205,8 @@ public class Generator {
             DeserializationFeature.class,
             "FAIL_ON_UNKNOWN_PROPERTIES"
           )
-          .addStatement("this.objectMapper.configure($T.$N, false);",
+          .addStatement(
+            "this.objectMapper.configure($T.$N, false);",
             DeserializationFeature.class,
             "FAIL_ON_INVALID_SUBTYPE"
           )
