@@ -239,7 +239,7 @@ public class Generator {
               uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
             )
             .addCode("{\n$>")
-            .addCode("((ObjectNode) p).remove(\"cookiePartitionKey\")")
+            .addStatement("((ObjectNode) p).remove(\"cookiePartitionKey\")")
             .addStatement(
               "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
               getTypeName(typeSpec.name, getPackageName(domain))
