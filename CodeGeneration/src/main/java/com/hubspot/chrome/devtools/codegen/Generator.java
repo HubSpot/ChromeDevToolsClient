@@ -230,6 +230,22 @@ public class Generator {
     for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
       Domain domain = entry.getKey();
       for (TypeSpec typeSpec : entry.getValue()) {
+        if(typeSpec.name.contains("responseReceivedExtraInfo")) {
+          deserializationBuilder
+              .addCode(
+                  "case $S: ",
+                  domain.getName() +
+                      "." +
+                      uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
+              )
+              .addCode("{\n$>")
+              .addCode("((ObjectNode) p).remove(\"cookiePartitionKey\")")
+              .addStatement(
+                  "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
+                  getTypeName(typeSpec.name, getPackageName(domain))
+              )
+              .addCode("$<}\n");
+        } else {
         deserializationBuilder
           .addCode(
             "case $S: ",
@@ -243,6 +259,7 @@ public class Generator {
             getTypeName(typeSpec.name, getPackageName(domain))
           )
           .addCode("$<}\n");
+        }
       }
     }
 
