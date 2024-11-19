@@ -205,6 +205,11 @@ public class Generator {
             DeserializationFeature.class,
             "FAIL_ON_UNKNOWN_PROPERTIES"
           )
+          .addStatement(
+            "this.objectMapper.configure($T.$N, false);",
+            DeserializationFeature.class,
+            "FAIL_ON_INVALID_SUBTYPE"
+          )
           .build()
       );
 
@@ -225,19 +230,36 @@ public class Generator {
     for (Entry<Domain, List<TypeSpec>> entry : pojos.entrySet()) {
       Domain domain = entry.getKey();
       for (TypeSpec typeSpec : entry.getValue()) {
-        deserializationBuilder
-          .addCode(
-            "case $S: ",
-            domain.getName() +
-            "." +
-            uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
-          )
-          .addCode("{\n$>")
-          .addStatement(
-            "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
-            getTypeName(typeSpec.name, getPackageName(domain))
-          )
-          .addCode("$<}\n");
+        if (typeSpec.name.contains("responseReceivedExtraInfo")) {
+          deserializationBuilder
+            .addCode(
+              "case $S: ",
+              domain.getName() +
+              "." +
+              uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
+            )
+            .addCode("{\n$>")
+            .addStatement("((ObjectNode) p).remove(\"cookiePartitionKey\")")
+            .addStatement(
+              "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
+              getTypeName(typeSpec.name, getPackageName(domain))
+            )
+            .addCode("$<}\n");
+        } else {
+          deserializationBuilder
+            .addCode(
+              "case $S: ",
+              domain.getName() +
+              "." +
+              uncapitalize(replaceAtEnd(typeSpec.name, "Event", ""))
+            )
+            .addCode("{\n$>")
+            .addStatement(
+              "return objectMapper.readValue(node.findValue(\"params\").toString(), $T.class)",
+              getTypeName(typeSpec.name, getPackageName(domain))
+            )
+            .addCode("$<}\n");
+        }
       }
     }
 
