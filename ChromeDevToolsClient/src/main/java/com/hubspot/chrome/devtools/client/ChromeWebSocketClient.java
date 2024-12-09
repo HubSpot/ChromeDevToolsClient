@@ -111,7 +111,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
         errorsReceived.put(response.getId(), response.getError());
       }
     } catch (IOException ioe) {
-      LOG.error("Could not parse response from chrome", ioe);
+      LOG.warn("Could not parse response from chrome. Ignoring this response.", ioe);
     }
   }
 
