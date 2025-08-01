@@ -1,2 +1,5 @@
+buildpack:
+  name: Blazar-Buildpack-Java
+  
 provides:
   - name: ChromeDevToolsClient-CodeGeneration
