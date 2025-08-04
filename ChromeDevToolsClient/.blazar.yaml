@@ -1,2 +1,5 @@
+buildpack:
+  name: Blazar-Buildpack-Java
+
 depends:
   - name: ChromeDevToolsClient-CodeGeneration

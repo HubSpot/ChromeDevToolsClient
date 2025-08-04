@@ -21,7 +21,6 @@ import com.hubspot.chrome.devtools.client.core.audits.Audits;
 import com.hubspot.chrome.devtools.client.core.browser.Browser;
 import com.hubspot.chrome.devtools.client.core.cachestorage.CacheStorage;
 import com.hubspot.chrome.devtools.client.core.css.CSS;
-import com.hubspot.chrome.devtools.client.core.database.Database;
 import com.hubspot.chrome.devtools.client.core.debugger.Debugger;
 import com.hubspot.chrome.devtools.client.core.deviceorientation.DeviceOrientation;
 import com.hubspot.chrome.devtools.client.core.dom.BoxModel;
@@ -661,10 +660,6 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public CSS getCSS() {
     return new CSS(this, objectMapper);
-  }
-
-  public Database getDatabase() {
-    return new Database(this, objectMapper);
   }
 
   public Debugger getDebugger() {
