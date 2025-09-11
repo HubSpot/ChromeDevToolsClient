@@ -8,6 +8,7 @@ import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.github.rholder.retry.WaitStrategies;
 import com.hubspot.chrome.devtools.base.ChromeSessionInfo;
+import com.hubspot.chrome.devtools.base.ChromeVersionInfo;
 import com.hubspot.chrome.devtools.client.core.target.TargetID;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
 import com.hubspot.horizon.HttpClient;
@@ -82,6 +83,22 @@ public class ChromeDevToolsClient implements Closeable {
     );
   }
 
+  public ChromeDevToolsBrowserContext createBrowserContext(String host, int port)
+    throws URISyntaxException {
+    final String wsUri = getWebSocketDebuggerUrl(host, port);
+    return createBrowserContext(wsUri);
+  }
+
+  public ChromeDevToolsBrowserContext createBrowserContext(final String wsUri)
+    throws URISyntaxException {
+    return new ChromeDevToolsBrowserContext(
+      new URI(wsUri),
+      objectMapper,
+      executorService,
+      actionTimeoutMillis
+    );
+  }
+
   @Override
   public void close() {
     try {
@@ -90,6 +107,24 @@ public class ChromeDevToolsClient implements Closeable {
     } catch (Throwable t) {
       LOG.error("Could not properly close chrome client", t);
     }
+  }
+
+  private String getWebSocketDebuggerUrl(String host, int port) {
+    final String url = String.format("http://%s:%d/json/version", host, port);
+    final HttpRequest httpRequest = HttpRequest
+      .newBuilder()
+      .setUrl(url)
+      .setMethod(Method.GET)
+      .build();
+
+    final HttpResponse response = httpClient.execute(httpRequest);
+
+    if (response.isError()) {
+      throw new ChromeDevToolsException("Unable to find available chrome version info.");
+    }
+
+    final ChromeVersionInfo versionInfo = response.getAs(new TypeReference<>() {});
+    return versionInfo.getWebSocketDebuggerUrl();
   }
 
   private TargetID getFirstAvailableTargetId(String host, int port) {
