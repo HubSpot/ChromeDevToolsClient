@@ -179,7 +179,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     );
   }
 
-  private void sendChromeRequest(ChromeRequest request) {
+  void sendChromeRequest(ChromeRequest request) {
     try {
       String json = objectMapper.writeValueAsString(request);
       LOG.trace("Sending request: {}", json);
