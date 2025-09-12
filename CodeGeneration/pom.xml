@@ -1,13 +1,14 @@
-<?xml version="1.0" ?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hubspot.chrome</groupId>
-    <artifactId>ChromeDevTools-parent</artifactId>
-    <version>138.0.7204.157-SNAPSHOT</version>
+    <groupId>uk.co.screamingfrog</groupId>
+    <artifactId>chromedevtools-parent</artifactId>
+    <version>138.0.7204.157-sf3</version>
   </parent>
 
-  <artifactId>CodeGeneration</artifactId>
+  <artifactId>code-generation</artifactId>
 
   <dependencyManagement>
     <dependencies>
@@ -15,7 +16,9 @@
         <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-guava</artifactId>
         <version>${dep.jackson.version}</version>
-        <exclusions><!-- redefined here to remove guava exclusion --></exclusions>
+        <exclusions>
+          <!-- redefined here to remove guava exclusion -->
+        </exclusions>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -46,8 +49,8 @@
       <artifactId>error_prone_annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.hubspot.chrome</groupId>
-      <artifactId>ChromeDevToolsBase</artifactId>
+      <groupId>uk.co.screamingfrog</groupId>
+      <artifactId>chromedevtools-base</artifactId>
     </dependency>
     <dependency>
       <groupId>com.squareup</groupId>

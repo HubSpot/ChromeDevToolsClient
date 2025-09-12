@@ -1,13 +1,14 @@
-<?xml version="1.0" ?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>com.hubspot.chrome</groupId>
-    <artifactId>ChromeDevTools-parent</artifactId>
-    <version>138.0.7204.157-SNAPSHOT</version>
+    <groupId>uk.co.screamingfrog</groupId>
+    <artifactId>chromedevtools-parent</artifactId>
+    <version>138.0.7204.157-sf3</version>
   </parent>
 
-  <artifactId>ChromeDevToolsClient</artifactId>
+  <artifactId>chromedevtools-client</artifactId>
 
   <properties>
     <basepom.check.skip-findbugs>true</basepom.check.skip-findbugs>
@@ -35,8 +36,8 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.hubspot.chrome</groupId>
-      <artifactId>ChromeDevToolsBase</artifactId>
+      <groupId>uk.co.screamingfrog</groupId>
+      <artifactId>chromedevtools-base</artifactId>
     </dependency>
     <dependency>
       <groupId>com.hubspot</groupId>
@@ -84,8 +85,8 @@
         <dependencies>
           <!-- Ensures the Generator is compiled first so it can actually run -->
           <dependency>
-            <groupId>com.hubspot.chrome</groupId>
-            <artifactId>CodeGeneration</artifactId>
+            <groupId>uk.co.screamingfrog</groupId>
+            <artifactId>code-generation</artifactId>
             <version>${project.version}</version>
           </dependency>
         </dependencies>
