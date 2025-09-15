@@ -73,6 +73,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -208,17 +209,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     //
     //       Here the user must do `callingMethod().getProtocolVersion()` or `someMethod().getJsVersion()`.
     Iterator<JsonNode> elements = response.getResult().elements();
-    JsonNode first = elements.next();
     try {
       // We do our best to predict which kind of result to consume the response as, but there's
       // a small chance that a multi-result response has optional, absent members, and we try and
       // fail to parse it as a single-result response, which is why we catch the inner JsonMappingException.
+      JsonNode first = elements.next();
       if (elements.hasNext()) {
         return objectMapper.readValue(response.getResult().toString(), valueType);
       } else {
         return objectMapper.readValue(objectMapper.treeAsTokens(first), valueType);
       }
-    } catch (JsonMappingException e) {
+    } catch (JsonMappingException | NoSuchElementException e) {
       try {
         return objectMapper.readValue(response.getResult().toString(), valueType);
       } catch (IOException e1) {
