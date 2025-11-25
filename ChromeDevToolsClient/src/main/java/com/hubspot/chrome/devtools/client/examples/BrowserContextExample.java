@@ -44,6 +44,8 @@ public class BrowserContextExample {
       } else {
         System.out.println("Failed to load: " + URL);
       }
+    } catch (final Exception e) {
+      System.out.println("Exception: " + e);
     }
 
     // Close the client when we are done with it to cleanly shut down executors

@@ -57,11 +57,12 @@ public class ChromeDevToolsBrowserContext extends ChromeDevToolsSession {
   }
 
   @Override
-  public void close() {
+  public void close() throws Exception {
     if (browserContextId != null) {
       sessionId = null;
       getTarget().disposeBrowserContext(browserContextId);
       browserContextId = null;
+      super.close();
     } else {
       LOG.debug("Not attached");
     }
