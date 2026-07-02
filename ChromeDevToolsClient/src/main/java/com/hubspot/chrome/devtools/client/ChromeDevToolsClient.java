@@ -82,6 +82,20 @@ public class ChromeDevToolsClient implements Closeable {
     );
   }
 
+  public ChromeDevToolsSession connect(String host, int port, String targetId) {
+    String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
+    try {
+      return new ChromeDevToolsSession(
+        new URI(uri),
+        objectMapper,
+        executorService,
+        actionTimeoutMillis
+      );
+    } catch (URISyntaxException e) {
+      throw new ChromeDevToolsException(e);
+    }
+  }
+
   @Override
   public void close() {
     try {

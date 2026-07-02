@@ -96,6 +96,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   private final ObjectMapper objectMapper;
   private final ExecutorService executorService;
   private final UUID id;
+  private final String targetId;
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
 
@@ -117,6 +118,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
+    this.targetId = uri.getPath().substring(uri.getPath().lastIndexOf('/') + 1);
 
     try {
       this.websocket.connectBlocking();
@@ -139,6 +141,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
+    this.targetId = null;
   }
 
   @Override
@@ -236,6 +239,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public boolean isConnected() {
     return websocket.isOpen();
+  }
+
+  public String getTargetId() {
+    return targetId;
   }
 
   public void waitDocumentReady() {
