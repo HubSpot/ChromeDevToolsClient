@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +82,7 @@ public class ChromeDevToolsClient implements Closeable {
     try {
       return new ChromeDevToolsSession(
         new URI(uri),
-        targetId,
+        Optional.of(targetId),
         objectMapper,
         executorService,
         actionTimeoutMillis

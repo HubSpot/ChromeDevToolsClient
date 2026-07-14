@@ -98,7 +98,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   private final ObjectMapper objectMapper;
   private final ExecutorService executorService;
   private final UUID id;
-  private final TargetID targetId;
+  private final Optional<TargetID> targetId;
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
 
@@ -108,12 +108,12 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     ExecutorService executorService,
     long actionTimeoutMillis
   ) {
-    this(uri, null, objectMapper, executorService, actionTimeoutMillis);
+    this(uri, Optional.empty(), objectMapper, executorService, actionTimeoutMillis);
   }
 
   public ChromeDevToolsSession(
     URI uri,
-    TargetID targetId,
+    Optional<TargetID> targetId,
     ObjectMapper objectMapper,
     ExecutorService executorService,
     long actionTimeoutMillis
@@ -167,7 +167,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
-    this.targetId = null;
+    this.targetId = Optional.empty();
   }
 
   @Override
@@ -268,7 +268,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public Optional<TargetID> getTargetId() {
-    return Optional.ofNullable(targetId);
+    return targetId;
   }
 
   public void waitDocumentReady() {
