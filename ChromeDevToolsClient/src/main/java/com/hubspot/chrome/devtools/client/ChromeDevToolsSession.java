@@ -120,12 +120,26 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.id = UUID.randomUUID();
     this.targetId = uri.getPath().substring(uri.getPath().lastIndexOf('/') + 1);
 
+    boolean connected;
     try {
-      this.websocket.connectBlocking();
+      connected =
+        this.websocket.connectBlocking(actionTimeoutMillis, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ChromeDevToolsException(
+        String.format("Interrupted while connecting to uri %s", uri),
+        e
+      );
     } catch (Throwable t) {
       throw new ChromeDevToolsException(
         String.format("Could not connect to uri %s", uri),
         t
+      );
+    }
+
+    if (!connected) {
+      throw new ChromeDevToolsException(
+        String.format("Could not connect to uri %s; the target may no longer exist", uri)
       );
     }
   }
