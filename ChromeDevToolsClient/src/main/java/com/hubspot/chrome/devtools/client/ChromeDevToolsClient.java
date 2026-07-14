@@ -77,12 +77,9 @@ public class ChromeDevToolsClient implements Closeable {
     return connectToTarget(host, port, targetId);
   }
 
-  public ChromeDevToolsSession connect(String host, int port, TargetID targetId) {
-    try {
-      return connectToTarget(host, port, targetId);
-    } catch (URISyntaxException e) {
-      throw new ChromeDevToolsException(e);
-    }
+  public ChromeDevToolsSession connect(String host, int port, TargetID targetId)
+    throws URISyntaxException {
+    return connectToTarget(host, port, targetId);
   }
 
   private ChromeDevToolsSession connectToTarget(String host, int port, TargetID targetId)
