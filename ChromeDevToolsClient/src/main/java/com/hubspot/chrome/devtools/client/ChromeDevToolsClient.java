@@ -81,6 +81,7 @@ public class ChromeDevToolsClient implements Closeable {
     try {
       return new ChromeDevToolsSession(
         new URI(uri),
+        targetId,
         objectMapper,
         executorService,
         actionTimeoutMillis

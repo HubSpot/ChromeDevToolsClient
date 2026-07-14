@@ -61,6 +61,7 @@ import com.hubspot.chrome.devtools.client.core.storage.Storage;
 import com.hubspot.chrome.devtools.client.core.systeminfo.SystemInfo;
 import com.hubspot.chrome.devtools.client.core.target.SessionID;
 import com.hubspot.chrome.devtools.client.core.target.Target;
+import com.hubspot.chrome.devtools.client.core.target.TargetID;
 import com.hubspot.chrome.devtools.client.core.tethering.Tethering;
 import com.hubspot.chrome.devtools.client.core.tracing.Tracing;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
@@ -73,6 +74,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,12 +98,22 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   private final ObjectMapper objectMapper;
   private final ExecutorService executorService;
   private final UUID id;
-  private final String targetId;
+  private final TargetID targetId;
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
 
   public ChromeDevToolsSession(
     URI uri,
+    ObjectMapper objectMapper,
+    ExecutorService executorService,
+    long actionTimeoutMillis
+  ) {
+    this(uri, null, objectMapper, executorService, actionTimeoutMillis);
+  }
+
+  public ChromeDevToolsSession(
+    URI uri,
+    TargetID targetId,
     ObjectMapper objectMapper,
     ExecutorService executorService,
     long actionTimeoutMillis
@@ -118,7 +130,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
-    this.targetId = uri.getPath().substring(uri.getPath().lastIndexOf('/') + 1);
+    this.targetId = targetId;
 
     boolean connected;
     try {
@@ -255,8 +267,8 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     return websocket.isOpen();
   }
 
-  public String getTargetId() {
-    return targetId;
+  public Optional<TargetID> getTargetId() {
+    return Optional.ofNullable(targetId);
   }
 
   public void waitDocumentReady() {
