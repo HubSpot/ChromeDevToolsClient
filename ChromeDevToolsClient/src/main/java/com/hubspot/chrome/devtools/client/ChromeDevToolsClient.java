@@ -67,29 +67,34 @@ public class ChromeDevToolsClient implements Closeable {
     return new Builder().build();
   }
 
-  public ChromeDevToolsSession connect(String host, int port) {
+  public ChromeDevToolsSession connect(String host, int port) throws URISyntaxException {
     TargetID targetId;
     try {
       targetId = httpRetryer.call(() -> getFirstAvailableTargetId(host, port));
     } catch (ExecutionException | RetryException e) {
       throw new ChromeDevToolsException(e);
     }
-    return connect(host, port, targetId);
+    return connectToTarget(host, port, targetId);
   }
 
   public ChromeDevToolsSession connect(String host, int port, TargetID targetId) {
-    String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
     try {
-      return new ChromeDevToolsSession(
-        new URI(uri),
-        Optional.of(targetId),
-        objectMapper,
-        executorService,
-        actionTimeoutMillis
-      );
+      return connectToTarget(host, port, targetId);
     } catch (URISyntaxException e) {
       throw new ChromeDevToolsException(e);
     }
+  }
+
+  private ChromeDevToolsSession connectToTarget(String host, int port, TargetID targetId)
+    throws URISyntaxException {
+    String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
+    return new ChromeDevToolsSession(
+      new URI(uri),
+      Optional.of(targetId),
+      objectMapper,
+      executorService,
+      actionTimeoutMillis
+    );
   }
 
   @Override
