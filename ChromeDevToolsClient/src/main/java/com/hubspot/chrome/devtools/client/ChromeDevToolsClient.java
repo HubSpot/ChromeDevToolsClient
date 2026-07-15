@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -73,9 +74,20 @@ public class ChromeDevToolsClient implements Closeable {
     } catch (ExecutionException | RetryException e) {
       throw new ChromeDevToolsException(e);
     }
+    return connectToTarget(host, port, targetId);
+  }
+
+  public ChromeDevToolsSession connect(String host, int port, TargetID targetId)
+    throws URISyntaxException {
+    return connectToTarget(host, port, targetId);
+  }
+
+  private ChromeDevToolsSession connectToTarget(String host, int port, TargetID targetId)
+    throws URISyntaxException {
     String uri = String.format(WEBSOCKET_URL_TEMPLATE, host, port, targetId);
     return new ChromeDevToolsSession(
       new URI(uri),
+      Optional.of(targetId),
       objectMapper,
       executorService,
       actionTimeoutMillis

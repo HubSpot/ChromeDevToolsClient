@@ -61,6 +61,7 @@ import com.hubspot.chrome.devtools.client.core.storage.Storage;
 import com.hubspot.chrome.devtools.client.core.systeminfo.SystemInfo;
 import com.hubspot.chrome.devtools.client.core.target.SessionID;
 import com.hubspot.chrome.devtools.client.core.target.Target;
+import com.hubspot.chrome.devtools.client.core.target.TargetID;
 import com.hubspot.chrome.devtools.client.core.tethering.Tethering;
 import com.hubspot.chrome.devtools.client.core.tracing.Tracing;
 import com.hubspot.chrome.devtools.client.exceptions.ChromeDevToolsException;
@@ -73,6 +74,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,11 +98,22 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   private final ObjectMapper objectMapper;
   private final ExecutorService executorService;
   private final UUID id;
+  private final Optional<TargetID> targetId;
 
   private final Map<String, ChromeEventListener> chromeEventListeners;
 
   public ChromeDevToolsSession(
     URI uri,
+    ObjectMapper objectMapper,
+    ExecutorService executorService,
+    long actionTimeoutMillis
+  ) {
+    this(uri, Optional.empty(), objectMapper, executorService, actionTimeoutMillis);
+  }
+
+  public ChromeDevToolsSession(
+    URI uri,
+    Optional<TargetID> targetId,
     ObjectMapper objectMapper,
     ExecutorService executorService,
     long actionTimeoutMillis
@@ -117,13 +130,28 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
+    this.targetId = targetId;
 
+    boolean connected;
     try {
-      this.websocket.connectBlocking();
+      connected =
+        this.websocket.connectBlocking(actionTimeoutMillis, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new ChromeDevToolsException(
+        String.format("Interrupted while connecting to uri %s", uri),
+        e
+      );
     } catch (Throwable t) {
       throw new ChromeDevToolsException(
         String.format("Could not connect to uri %s", uri),
         t
+      );
+    }
+
+    if (!connected) {
+      throw new ChromeDevToolsException(
+        String.format("Could not connect to uri %s; the target may no longer exist", uri)
       );
     }
   }
@@ -139,6 +167,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     this.objectMapper = objectMapper;
     this.executorService = executorService;
     this.id = UUID.randomUUID();
+    this.targetId = Optional.empty();
   }
 
   @Override
@@ -236,6 +265,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public boolean isConnected() {
     return websocket.isOpen();
+  }
+
+  public Optional<TargetID> getTargetId() {
+    return targetId;
   }
 
   public void waitDocumentReady() {
