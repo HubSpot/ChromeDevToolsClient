@@ -218,42 +218,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   private <T> T parseChromeResponse(ChromeResponse response, TypeReference<T> valueType) {
-    // Most methods return a single element of data. To eliminate the user needing to access this
-    // single element via a pass through method, we skip the root node and map the element's data right
-    // into the data structure we want (i.e. we don't parse the root node itself).
-    //
-    //   e.g. { "result" : { "browserContextId" : "some_id" } }
-    //                               ^--- ignore      ^--- consume directly so user can act directly on string
-    //
-    //       Allows the user to do `callingMethod()` instead of `callingMethod().getBrowserContextId()`.
-    //
-    // If this fails, then the method is one of the few cases where there are multiple
-    // results that need to be mapped into a parent data structure.
-    //
-    //   e.g. { "result" : { "protocolVersion" : "1.2.3" }, { "jsVersion" : "6.6.8" } }
-    //                    |__________________________________________________________|
-    //                                       `--------- must consume all so user can select which element to work with
-    //
-    //       Here the user must do `callingMethod().getProtocolVersion()` or `someMethod().getJsVersion()`.
-    Iterator<JsonNode> elements = response.getResult().elements();
-    JsonNode first = elements.next();
     try {
-      // We do our best to predict which kind of result to consume the response as, but there's
-      // a small chance that a multi-result response has optional, absent members, and we try and
-      // fail to parse it as a single-result response, which is why we catch the inner JsonMappingException.
-      if (elements.hasNext()) {
-        return objectMapper.readValue(response.getResult().toString(), valueType);
-      } else {
-        return objectMapper.readValue(objectMapper.treeAsTokens(first), valueType);
-      }
-    } catch (JsonMappingException e) {
-      try {
-        return objectMapper.readValue(response.getResult().toString(), valueType);
-      } catch (IOException e1) {
-        throw new ChromeDevToolsException(e1);
-      }
-    } catch (IOException e2) {
-      throw new ChromeDevToolsException(e2);
+      return objectMapper.readValue(response.getResult().toString(), valueType);
+    } catch (IOException | NullPointerException e) {
+      throw new ChromeDevToolsException(e);
     }
   }
 
@@ -331,7 +299,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public String getUrl() {
-    return getDOM().getDocument(null, null).getDocumentURL();
+    return getDOM().getDocument(null, null).root.getDocumentURL();
   }
 
   public EvaluateResult evaluate(String javascript) {
@@ -356,11 +324,13 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public FrameId getFrameId() {
-    return getDOM().getDocument(null, null).getFrameId();
+    return getDOM().getDocument(null, null).root.getFrameId();
   }
 
   public List<NodeId> getNodeIds(String selector) {
-    return getDOM().querySelectorAll(getDOM().getDocument(1, null).getNodeId(), selector);
+    return getDOM()
+      .querySelectorAll(getDOM().getDocument(1, null).root.getNodeId(), selector)
+      .nodeIds;
   }
 
   public NodeId getNodeId(String selector) {
@@ -374,7 +344,8 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public byte[] captureScreenshot(FileExtension extension) {
     String data = getPage()
-      .captureScreenshot(extension.name().toLowerCase(), null, null, null, null);
+      .captureScreenshot(extension.name().toLowerCase(), null, null, null, null)
+      .data;
     return Base64.getDecoder().decode(data);
   }
 
@@ -570,15 +541,15 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public RemoteObjectId getObjectId(String selector) {
     DOM dom = getDOM();
-    NodeId root = dom.getDocument(null, null).getNodeId();
+    NodeId root = dom.getDocument(null, null).root.getNodeId();
     if (root == null) {
       return null;
     }
-    NodeId selectedNodeId = dom.querySelector(root, selector);
+    NodeId selectedNodeId = dom.querySelector(root, selector).nodeId;
     if (selectedNodeId == null) {
       return null;
     }
-    RemoteObject remoteObject = dom.resolveNode(selectedNodeId, null, null, null);
+    RemoteObject remoteObject = dom.resolveNode(selectedNodeId, null, null, null).object;
     if (remoteObject == null) {
       return null;
     }
@@ -586,7 +557,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
   }
 
   public String getLocation() {
-    return getDOM().getDocument(null, null).getDocumentURL();
+    return getDOM().getDocument(null, null).root.getDocumentURL();
   }
 
   public boolean click(String selector) {
@@ -594,7 +565,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     if (selectedNodeId == null) {
       return false;
     }
-    BoxModel boxModel = getDOM().getBoxModel(selectedNodeId, null, null);
+    BoxModel boxModel = getDOM().getBoxModel(selectedNodeId, null, null).model;
     if (boxModel == null) {
       return false;
     }

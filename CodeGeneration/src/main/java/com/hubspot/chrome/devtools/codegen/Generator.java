@@ -661,10 +661,7 @@ public class Generator {
     // Sometimes chrome will return multiple objects. This creates classes that will
     // encapsulate those types into a single class.
     List<Property> returnValues = command.getReturns().orElse(Collections.emptyList());
-    if (returnValues.size() > 1) {
-      return Optional.of(buildContainerForMultipleReturns(command, domain, returnValues));
-    }
-    return Optional.empty();
+    return Optional.of(buildContainerForMultipleReturns(command, domain, returnValues));
   }
 
   private TypeSpec buildContainerForMultipleReturns(
@@ -777,12 +774,11 @@ public class Generator {
         packageName,
         returnTypeName.get()
       );
-      TypeName valueType = returnValues.size() == 1
-        ? getTypeName(returnValues.get(0), packageName)
-        : ClassName.get(
-          classPackageResolver.getPackageName(),
-          classPackageResolver.getClassName()
-        );
+
+      TypeName valueType = ClassName.get(
+        classPackageResolver.getPackageName(),
+        classPackageResolver.getClassName()
+      );
 
       TypeName returnType = valueType;
       if (async) {

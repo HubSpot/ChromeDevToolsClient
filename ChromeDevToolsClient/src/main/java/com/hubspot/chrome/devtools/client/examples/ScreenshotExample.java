@@ -38,7 +38,8 @@ public class ScreenshotExample {
       // Locate the element on the page
       BoxModel boxModel = session
         .getDOM()
-        .getBoxModel(session.getNodeId(cssSelector), null, null);
+        .getBoxModel(session.getNodeId(cssSelector), null, null)
+        .model;
       int width = boxModel.getWidth();
       int height = boxModel.getHeight(); // includes shadows
 
@@ -58,7 +59,8 @@ public class ScreenshotExample {
       // Get the screenshot data as a base 64 encoded string
       String base64Data = session
         .getPage()
-        .captureScreenshot("png", null, clip, null, null);
+        .captureScreenshot("png", null, clip, null, null)
+        .data;
       byte[] data = Base64.getDecoder().decode(base64Data);
 
       // Alternatively use the client shortcut to capture either a PNG or PDF screenshot
