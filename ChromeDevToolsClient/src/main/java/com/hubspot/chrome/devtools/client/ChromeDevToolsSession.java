@@ -31,6 +31,7 @@ import com.hubspot.chrome.devtools.client.core.domdebugger.DOMDebugger;
 import com.hubspot.chrome.devtools.client.core.domsnapshot.DOMSnapshot;
 import com.hubspot.chrome.devtools.client.core.domstorage.DOMStorage;
 import com.hubspot.chrome.devtools.client.core.emulation.Emulation;
+import com.hubspot.chrome.devtools.client.core.fetch.Fetch;
 import com.hubspot.chrome.devtools.client.core.headlessexperimental.HeadlessExperimental;
 import com.hubspot.chrome.devtools.client.core.heapprofiler.HeapProfiler;
 import com.hubspot.chrome.devtools.client.core.indexeddb.IndexedDB;
@@ -721,6 +722,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public Emulation getEmulation() {
     return new Emulation(this, objectMapper);
+  }
+
+  public Fetch getFetch() {
+    return new Fetch(this, objectMapper);
   }
 
   public HeadlessExperimental getHeadlessExperimental() {
