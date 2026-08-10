@@ -10,7 +10,7 @@ https://source.chromium.org/chromium/chromium/src/+/refs/tags/91.0.4472.114:thir
 
 Copy the content of this file to CodeGeneration/src/main/resources/browser_protocol.pdl
 
-Run the pdl_to_json.py scipt to update the corresponding json file:
+Run the pdl_to_json.py script to update the corresponding json file:
 
 ```
 python pdl_to_json.py --pdl_file ../CodeGeneration/src/main/resources/browser_protocol.pdl --json_file ../CodeGeneration/src/main/resources/browser_protocol.json
