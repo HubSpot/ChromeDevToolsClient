@@ -94,6 +94,40 @@ public class ChromeDevToolsClient implements Closeable {
     );
   }
 
+  public List<ChromeSessionInfo> listTargets(String host, int port) {
+    String url = String.format("http://%s:%d/json/list", host, port);
+    HttpRequest httpRequest = HttpRequest
+      .newBuilder()
+      .setUrl(url)
+      .setMethod(Method.GET)
+      .build();
+
+    HttpResponse response = httpClient.execute(httpRequest);
+
+    if (response.isError()) {
+      throw new ChromeDevToolsException("Unable to find available chrome session info.");
+    }
+
+    return response.getAs(new TypeReference<>() {});
+  }
+
+  public boolean closeTarget(String host, int port, String targetId) {
+    String url = String.format("http://%s:%d/json/close/%s", host, port, targetId);
+    HttpRequest httpRequest = HttpRequest
+      .newBuilder()
+      .setUrl(url)
+      .setMethod(Method.GET)
+      .build();
+
+    HttpResponse response = httpClient.execute(httpRequest);
+
+    if (response.isError()) {
+      throw new ChromeDevToolsException("Unable to close target.");
+    }
+
+    return response.isSuccess();
+  }
+
   @Override
   public void close() {
     try {
@@ -108,21 +142,8 @@ public class ChromeDevToolsClient implements Closeable {
     if (defaultStartNewTarget) {
       return startNewTarget(host, port);
     }
-    String url = String.format("http://%s:%d/json/list", host, port);
-    HttpRequest httpRequest = HttpRequest
-      .newBuilder()
-      .setUrl(url)
-      .setMethod(Method.GET)
-      .build();
-
-    HttpResponse response = httpClient.execute(httpRequest);
-
-    if (response.isError()) {
-      throw new ChromeDevToolsException("Unable to find available chrome session info.");
-    }
-
-    List<ChromeSessionInfo> sessions = response.getAs(new TypeReference<>() {});
-    if (sessions.size() == 0) {
+    List<ChromeSessionInfo> sessions = listTargets(host, port);
+    if (sessions.isEmpty()) {
       return startNewTarget(host, port);
     }
     return new TargetID(sessions.get(0).getId());
