@@ -91,7 +91,7 @@ public class ChromeWebSocketClient extends WebSocketClient {
 
   @Override
   public void onMessage(String message) {
-    LOG.trace("Received message: {}", message);
+    LOG.info("Received message: {}", message);
 
     try {
       ChromeResponse response = objectMapper.readValue(message, ChromeResponse.class);
