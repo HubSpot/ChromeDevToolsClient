@@ -31,6 +31,7 @@ import com.hubspot.chrome.devtools.client.core.domdebugger.DOMDebugger;
 import com.hubspot.chrome.devtools.client.core.domsnapshot.DOMSnapshot;
 import com.hubspot.chrome.devtools.client.core.domstorage.DOMStorage;
 import com.hubspot.chrome.devtools.client.core.emulation.Emulation;
+import com.hubspot.chrome.devtools.client.core.fetch.Fetch;
 import com.hubspot.chrome.devtools.client.core.headlessexperimental.HeadlessExperimental;
 import com.hubspot.chrome.devtools.client.core.heapprofiler.HeapProfiler;
 import com.hubspot.chrome.devtools.client.core.indexeddb.IndexedDB;
@@ -73,6 +74,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -207,7 +209,7 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     );
   }
 
-  private void sendChromeRequest(ChromeRequest request) {
+  void sendChromeRequest(ChromeRequest request) {
     try {
       String json = objectMapper.writeValueAsString(request);
       LOG.trace("Sending request: {}", json);
@@ -236,17 +238,17 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
     //
     //       Here the user must do `callingMethod().getProtocolVersion()` or `someMethod().getJsVersion()`.
     Iterator<JsonNode> elements = response.getResult().elements();
-    JsonNode first = elements.next();
     try {
       // We do our best to predict which kind of result to consume the response as, but there's
       // a small chance that a multi-result response has optional, absent members, and we try and
       // fail to parse it as a single-result response, which is why we catch the inner JsonMappingException.
+      JsonNode first = elements.next();
       if (elements.hasNext()) {
         return objectMapper.readValue(response.getResult().toString(), valueType);
       } else {
         return objectMapper.readValue(objectMapper.treeAsTokens(first), valueType);
       }
-    } catch (JsonMappingException e) {
+    } catch (JsonMappingException | NoSuchElementException e) {
       try {
         return objectMapper.readValue(response.getResult().toString(), valueType);
       } catch (IOException e1) {
@@ -721,6 +723,10 @@ public class ChromeDevToolsSession implements ChromeSessionCore {
 
   public Emulation getEmulation() {
     return new Emulation(this, objectMapper);
+  }
+
+  public Fetch getFetch() {
+    return new Fetch(this, objectMapper);
   }
 
   public HeadlessExperimental getHeadlessExperimental() {

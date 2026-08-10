@@ -24,6 +24,7 @@ public class ChromeRequest {
   private final Integer id;
   private String method;
   private Map<String, Object> params;
+  private String sessionId;
 
   public ChromeRequest(String method) {
     this.id = requestNumber.getAndIncrement();
@@ -33,6 +34,10 @@ public class ChromeRequest {
 
   public Integer getId() {
     return id;
+  }
+
+  public String getSessionId() {
+    return sessionId;
   }
 
   public String getMethod() {
@@ -54,5 +59,9 @@ public class ChromeRequest {
       this.params.put(key, value);
     }
     return this;
+  }
+
+  public void setSessionId(String sessionId) {
+    this.sessionId = sessionId;
   }
 }

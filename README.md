@@ -37,7 +37,26 @@ client.close();
 
 The `ChromeDevToolsSession` class provides all methods for interacting with Chrome. There are synchronous and asynchronous versions available for each method.
 
-You can also check out our [examples](TODO) for more.
+You can also check out our [examples](ChromeDevToolsClient/src/main/java/com/hubspot/chrome/devtools/client/examples) for more.
+
+## Usage with Browser Contexts
+
+Browser Contexts can be used to run multiple independent browser sessions; thus providing session isolation.
+The context is used in the same manner as the `ChromeDevToolsSession` described previously, however sessions are isolated in that cookie, local storage and caches are not shared.
+
+```java
+// Create the client
+ChromeDevToolsClient client = ChromeDevToolsClient.defaultClient();
+
+// Connect to Chrome Dev Tools Running on port 9292 on your local machine and create a browser context
+try (ChromeDevToolsBrowserContext context = client.createBrowserContext("127.0.0.1", 9292)) {
+  context.attach();
+  context.navigate("https://www.hubspot.com/");
+}
+
+// Close the client when your finished
+client.close();
+```
 
 ## Configuring ChromeDevToolsClient
 
